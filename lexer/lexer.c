@@ -2,9 +2,10 @@
 
 struct _lexer_t {
   char *input;
-  uint32_t position;                 /* current position in input (points to current char) */
-  uint32_t readPosition;             /* current reading position in input (after current char) */
-  char ch;                      /* current char under examination */
+  uint32_t position; /* current position in input (points to current char) */
+  uint32_t
+      readPosition; /* current reading position in input (after current char) */
+  char ch;          /* current char under examination */
 };
 
 lexer_t *lexer_new(char *input) {
@@ -41,7 +42,6 @@ void lexer_read_char(lexer_t *l) {
   }
   l->position = l->readPosition++;
 }
-
 
 token_t *lexer_next_token(lexer_t *l) {
   token_t *tok = NULL;

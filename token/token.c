@@ -1,7 +1,7 @@
 #include "token.h"
 
 char *token_to_str(TokenType t) {
-  switch(t) {
+  switch (t) {
   case ILLEGAL:
     return strdup("ILLEGAL");
   case EF:
@@ -34,7 +34,6 @@ char *token_to_str(TokenType t) {
 
   return NULL;
 }
-
 
 token_t *token_new(TokenType type, char ch) {
   token_t *tok = malloc(sizeof(token_t));
