@@ -3,6 +3,8 @@
 
 #include "../utils/utils.h"
 
+#define KEYWORDS_SIZE 50
+
 typedef enum {
   ILLEGAL,
   EF,
@@ -40,5 +42,9 @@ typedef struct _token_t token_t;
 char *token_to_str(TokenType t);
 token_t *token_new(TokenType type, char ch);
 void token_destroy(token_t **tok_p);
+
+TOKEN *keywords_initialize();
+void keywords_destroy(TOKEN **t_p);
+TOKEN keywords_get(TOKEN *keywords, char *str);
 
 #endif
