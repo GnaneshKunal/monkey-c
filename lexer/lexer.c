@@ -3,9 +3,9 @@
 struct _lexer_t {
   char *input;
   uint32_t position; /* current position in input (points to current char) */
-  uint32_t
-      readPosition; /* current reading position in input (after current char) */
-  char ch;          /* current char under examination */
+  uint32_t read_position; /* current reading position in input (after current
+                             char) */
+  char ch;                /* current char under examination */
   TOKEN *keywords;
 };
 
@@ -13,9 +13,7 @@ bool is_letter(char ch) {
   return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_';
 }
 
-bool is_digit(char ch) {
-  return '0' <= ch && ch <= '9';
-}
+bool is_digit(char ch) { return '0' <= ch && ch <= '9'; }
 
 TOKEN lexer_lookup_ident(lexer_t *l, char *ident) {
   /*
@@ -38,7 +36,7 @@ lexer_t *lexer_new(char *input) {
 
   lexer_t *l = malloc(sizeof(lexer_t));
   l->position = 0;
-  l->readPosition = 0;
+  l->read_position = 0;
   l->ch = 0;
   l->input = strdup(input);
   l->keywords = keywords_initialize();
@@ -62,12 +60,12 @@ void lexer_destroy(lexer_t **l_p) {
 void lexer_read_char(lexer_t *l) {
   assert(l);
   assert(l->input);
-  if (l->readPosition >= strlen(l->input)) {
+  if (l->read_position >= strlen(l->input)) {
     l->ch = 0;
   } else {
-    l->ch = l->input[l->readPosition];
+    l->ch = l->input[l->read_position];
   }
-  l->position = l->readPosition++;
+  l->position = l->read_position++;
 }
 
 char *lexer_read_identifier(lexer_t *l) {
@@ -103,6 +101,14 @@ char *lexer_read_number(lexer_t *l) {
   return strdup(number);
 }
 
+char lexer_peek_char(lexer_t *l) {
+  if (l->read_position >= strlen(l->input)) {
+    return '\0';
+  } else {
+    return l->input[l->read_position];
+  }
+}
+
 token_t *lexer_next_token(lexer_t *l) {
 
   token_t *tok = NULL;
@@ -111,10 +117,14 @@ token_t *lexer_next_token(lexer_t *l) {
 
   switch (l->ch) {
   case '=':
-    tok = token_new(ASSIGN, l->ch);
-    break;
-  case ';':
-    tok = token_new(SEMICOLON, l->ch);
+    if (lexer_peek_char(l) == '=') {
+      tok = malloc(sizeof(token_t));
+      tok->type = EQ;
+      tok->literal = strdup("==");
+      lexer_read_char(l);
+    } else {
+      tok = token_new(ASSIGN, l->ch);
+    }
     break;
   case '(':
     tok = token_new(LPAREN, l->ch);
@@ -122,11 +132,39 @@ token_t *lexer_next_token(lexer_t *l) {
   case ')':
     tok = token_new(RPAREN, l->ch);
     break;
+  case '+':
+    tok = token_new(PLUS, l->ch);
+    break;
+  case '-':
+    tok = token_new(MINUS, l->ch);
+    break;
+  case '!':
+    if (lexer_peek_char(l) == '=') {
+      tok = malloc(sizeof(token_t));
+      tok->type = NOT_EQ;
+      tok->literal = strdup("!=");
+      lexer_read_char(l);
+    } else {
+      tok = token_new(BANG, l->ch);
+    }
+    break;
+  case '/':
+    tok = token_new(SLASH, l->ch);
+    break;
+  case '*':
+    tok = token_new(ASTERISK, l->ch);
+    break;
+  case '<':
+    tok = token_new(LT, l->ch);
+    break;
+  case '>':
+    tok = token_new(GT, l->ch);
+    break;
   case ',':
     tok = token_new(COMMA, l->ch);
     break;
-  case '+':
-    tok = token_new(PLUS, l->ch);
+  case ';':
+    tok = token_new(SEMICOLON, l->ch);
     break;
   case '{':
     tok = token_new(LBRACE, l->ch);
@@ -136,8 +174,9 @@ token_t *lexer_next_token(lexer_t *l) {
     break;
   case 0:
     tok = malloc(sizeof(token_t));
-    tok->literal = "";
-    tok->type = ILLEGAL;
+    tok->literal = strdup("");
+    tok->type = EF;
+    break;
   default:
     if (is_letter(l->ch)) {
       tok = malloc(sizeof(token_t));
@@ -148,7 +187,7 @@ token_t *lexer_next_token(lexer_t *l) {
        * exit is required here.
        */
       return tok;
-    } else if(is_digit(l->ch)) {
+    } else if (is_digit(l->ch)) {
       tok = malloc(sizeof(token_t));
       tok->literal = lexer_read_number(l);
       tok->type = INT;
@@ -159,7 +198,8 @@ token_t *lexer_next_token(lexer_t *l) {
       return tok;
     } else {
       tok = malloc(sizeof(token_t));
-      tok->literal = "";
+      tok->literal = malloc(sizeof(char));
+      tok->literal[0] = '\0';
       tok->type = ILLEGAL;
     }
   }

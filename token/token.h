@@ -16,6 +16,16 @@ typedef enum {
   /* Operators */
   ASSIGN,
   PLUS,
+  MINUS,
+  BANG,
+  ASTERISK,
+  SLASH,
+
+  LT,
+  GT,
+
+  EQ,
+  NOT_EQ,
 
   /* Delimiters */
   COMMA,
@@ -27,7 +37,12 @@ typedef enum {
   RBRACE,
 
   FUNCTION,
-  LET
+  LET,
+  TRUE,
+  FALSE,
+  IF,
+  ELSE,
+  RETURN,
 } TOKEN;
 
 typedef TOKEN TokenType;

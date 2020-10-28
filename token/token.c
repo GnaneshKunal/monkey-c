@@ -3,8 +3,14 @@
 TOKEN *keywords_initialize() {
   TOKEN *token_table = calloc(sizeof(TOKEN), KEYWORDS_SIZE);
   assert(token_table);
-  token_table[gnu_hash("let") % KEYWORDS_SIZE] = LET;
   token_table[gnu_hash("fn") % KEYWORDS_SIZE] = FUNCTION;
+  token_table[gnu_hash("let") % KEYWORDS_SIZE] = LET;
+  token_table[gnu_hash("true") % KEYWORDS_SIZE] = TRUE;
+  token_table[gnu_hash("false") % KEYWORDS_SIZE] = FALSE;
+  token_table[gnu_hash("if") % KEYWORDS_SIZE] = IF;
+  token_table[gnu_hash("else") % KEYWORDS_SIZE] = ELSE;
+  token_table[gnu_hash("return") % KEYWORDS_SIZE] = RETURN;
+
   return token_table;
 }
 
@@ -37,6 +43,22 @@ char *token_to_str(TokenType t) {
     return strdup("ASSIGN");
   case PLUS:
     return strdup("PLUS");
+  case MINUS:
+    return strdup("MINUS");
+  case BANG:
+    return strdup("BANG");
+  case ASTERISK:
+    return strdup("ASTERISK");
+  case SLASH:
+    return strdup("SLASH");
+  case LT:
+    return strdup("LT");
+  case GT:
+    return strdup("GT");
+  case EQ:
+    return strdup("EQ");
+  case NOT_EQ:
+    return strdup("NOT_EQ");
   case COMMA:
     return strdup("COMMA");
   case SEMICOLON:
@@ -53,6 +75,16 @@ char *token_to_str(TokenType t) {
     return strdup("FUNCTION");
   case LET:
     return strdup("LET");
+  case TRUE:
+    return strdup("TRUE");
+  case FALSE:
+    return strdup("FALSE");
+  case IF:
+    return strdup("IF");
+  case ELSE:
+    return strdup("ELSE");
+  case RETURN:
+    return strdup("RETURN");
   }
 
   return NULL;
