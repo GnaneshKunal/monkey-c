@@ -1,22 +1,22 @@
 #include "token.h"
 
-TOKEN *keywords_initialize() {
+TOKEN *keywords_initialize(void) {
   TOKEN *token_table = calloc(sizeof(TOKEN), KEYWORDS_SIZE);
   assert(token_table);
-  token_table[gnu_hash("fn") % KEYWORDS_SIZE] = FUNCTION;
-  token_table[gnu_hash("let") % KEYWORDS_SIZE] = LET;
-  token_table[gnu_hash("true") % KEYWORDS_SIZE] = TRUE;
-  token_table[gnu_hash("false") % KEYWORDS_SIZE] = FALSE;
-  token_table[gnu_hash("if") % KEYWORDS_SIZE] = IF;
-  token_table[gnu_hash("else") % KEYWORDS_SIZE] = ELSE;
-  token_table[gnu_hash("return") % KEYWORDS_SIZE] = RETURN;
+  token_table[gnu_hash((const uint8_t *)"fn") % KEYWORDS_SIZE] = FUNCTION;
+  token_table[gnu_hash((const uint8_t *)"let") % KEYWORDS_SIZE] = LET;
+  token_table[gnu_hash((const uint8_t *)"true") % KEYWORDS_SIZE] = TRUE;
+  token_table[gnu_hash((const uint8_t *)"false") % KEYWORDS_SIZE] = FALSE;
+  token_table[gnu_hash((const uint8_t *)"if") % KEYWORDS_SIZE] = IF;
+  token_table[gnu_hash((const uint8_t *)"else") % KEYWORDS_SIZE] = ELSE;
+  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] = RETURN;
 
   return token_table;
 }
 
 TOKEN keywords_get(TOKEN *keywords, char *str) {
   assert(keywords);
-  return keywords[gnu_hash(str) % KEYWORDS_SIZE];
+  return keywords[gnu_hash((const uint8_t *)str) % KEYWORDS_SIZE];
 }
 
 void keywords_destroy(TOKEN **t_p) {

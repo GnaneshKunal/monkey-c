@@ -58,7 +58,7 @@ char *token_to_str(TokenType t);
 token_t *token_new(TokenType type, char ch);
 void token_destroy(token_t **tok_p);
 
-TOKEN *keywords_initialize();
+TOKEN *keywords_initialize(void);
 void keywords_destroy(TOKEN **t_p);
 TOKEN keywords_get(TOKEN *keywords, char *str);
 
