@@ -7,7 +7,8 @@ parser_t *parser_new(lexer_t *l) {
   p->l = l;
   p->cur_token = NULL;
   p->peek_token = NULL;
-
+  p->errors = NULL;
+  p->errors_len = 0;
   parser_next_token(p);
   parser_next_token(p);
 
@@ -35,11 +36,74 @@ void parser_destroy(parser_t **p_p) {
     if (p->peek_token != NULL) {
       token_destroy(&p->peek_token);
     }
+
+    while (p->errors_len != 0) {
+      free(p->errors[--p->errors_len]);
+    }
+    free(p->errors);
+
     assert(p->l);
     lexer_destroy(&p->l);
     free(p);
     *p_p = NULL;
   }
+}
+
+void parser_append_error(parser_t *parser, char *error) {
+  assert(parser);
+  assert(error);
+
+  if (parser->errors == NULL) {
+    parser->errors = malloc(sizeof(char *));
+    parser->errors[0] = strdup(error);
+    parser->errors_len = 1;
+    return;
+  }
+
+  char **errors =
+      realloc(parser->errors, sizeof(char *) * (parser->errors_len + 1));
+
+  if (errors == NULL) {
+    /*
+     * TODO: Better error handling needed
+     */
+    puts("Cannot allocate memory for errors");
+    exit(1);
+  }
+  parser->errors = errors;
+  parser->errors[parser->errors_len] = strdup(error);
+  parser->errors_len += 1;
+}
+
+char **parser_get_errors(parser_t *parser, size_t *error_len) {
+  assert(parser);
+  assert(error_len);
+
+  *error_len = parser->errors_len;
+
+  if (*error_len == 0)
+    return NULL;
+
+  char **errors = malloc(sizeof(char *) * (*error_len));
+
+  size_t i = 0;
+  while (i != parser->errors_len) {
+    errors[i] = strdup(parser->errors[i]);
+    ;
+    i++;
+  }
+  return errors;
+}
+
+void parser_peek_error(parser_t *parser, TOKEN token_type) {
+  char error[100];
+  char *expected_token_str = token_to_str(token_type);
+  char *actual_token_str = token_to_str(parser->peek_token->type);
+  sprintf(error, "expected next token to be %s, got %s instead",
+          expected_token_str, actual_token_str);
+  free(expected_token_str);
+  free(actual_token_str);
+  parser_append_error(parser, error);
 }
 
 program_t *parser_parse_program(parser_t *parser) {
@@ -51,12 +115,14 @@ program_t *parser_parse_program(parser_t *parser) {
     if (statement != NULL) {
       program_append_statement(program, statement);
     }
+    /*
+     * We are skipping a token here and won't be using it anywhere. So
+     * we must free the allocated memory of the skipping token.
+     */
     token_t *tok = parser->cur_token;
-    if (tok->type == SEMICOLON) {
-      token_destroy(&tok);
-      parser->cur_token = NULL;
-      parser_next_token(parser);
-    }
+    token_destroy(&tok);
+    parser->cur_token = NULL;
+    parser_next_token(parser);
   }
 
   return program;
@@ -70,6 +136,9 @@ statement_t *parser_parse_statement(parser_t *parser) {
   if (cur_token_type == LET) {
     let_statement_t *let_statement = parser_parse_let_statement(parser);
     return statement_new((void *)let_statement, LET_STATEMENT);
+  } else if (cur_token_type == RETURN) {
+    return statement_new((void *)parser_parse_return_statement(parser),
+                         RETURN_STATEMENT);
   } else {
     return NULL;
   }
@@ -97,19 +166,30 @@ let_statement_t *parser_parse_let_statement(parser_t *parser) {
 
   expression_t *value = NULL;
 
-  token_t *tok;
   while (!parser_cur_token_is(parser, SEMICOLON)) {
-    tok = parser->cur_token;
-    token_destroy(&tok);
-    parser->cur_token = NULL;
+    token_destroy(&parser->cur_token);
     parser_next_token(parser);
   }
-
-  token_destroy(&tok);
 
   let_statement_t *let_statement = let_statement_new(let_token, name, value);
 
   return let_statement;
+}
+
+return_statement_t *parser_parse_return_statement(parser_t *parser) {
+  assert(parser);
+
+  token_t *return_token = parser->cur_token;
+  expression_t *return_value = NULL;
+
+  parser_next_token(parser);
+
+  while (!parser_cur_token_is(parser, SEMICOLON)) {
+    token_destroy(&parser->cur_token);
+    parser_next_token(parser);
+  }
+
+  return return_statement_new(return_token, return_value);
 }
 
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type) {
@@ -127,6 +207,7 @@ bool parser_expect_peek(parser_t *parser, TOKEN token_type) {
     parser_next_token(parser);
     return true;
   } else {
+    parser_peek_error(parser, token_type);
     return false;
   }
 }

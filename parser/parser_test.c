@@ -31,6 +31,25 @@ bool test_let_statement(statement_t *s, char *name) {
   return true;
 }
 
+bool check_parser_errors(parser_t *parser) {
+  size_t error_len = 0;
+  char **errors = parser_get_errors(parser, &error_len);
+  if (error_len > 0) {
+
+    printf("parser has %zu errors\n", error_len);
+
+    int i = 0;
+    while (i < error_len) {
+      puts(errors[i]);
+      free(errors[i]);
+      i++;
+    }
+    free(errors);
+    return true;
+  }
+  return false;
+};
+
 void TestLetStatements() {
 
   char input[] = "                              \
@@ -43,6 +62,11 @@ let foobar = 838383;                            \
   parser_t *p = parser_new(l);
 
   program_t *program = parser_parse_program(p);
+  if (check_parser_errors(p)) {
+    program_destroy(&program);
+    parser_destroy(&p); /* destroys lexer too */
+    return;
+  }
 
   assert((program != NULL) && "parse_program returned NULL");
 
@@ -74,11 +98,57 @@ let foobar = 838383;                            \
   puts("Pass TestLetStatements");
 }
 
+void TestReturnStatements() {
+  char input[] = "                              \
+return 5;                                       \
+ return 10;                                     \
+ return 993322;                                 \
+";
+
+  lexer_t *lexer = lexer_new(input);
+  parser_t *parser = parser_new(lexer);
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser);
+    return;
+  }
+
+  assert((program != NULL) && "parse_program returned NULL");
+
+  if (program->len != 3) {
+    printf("program.Statements does not contain 3 statements. got=%lu\n",
+           program->len);
+    assert(program->len != 3);
+  }
+
+  for (int i = 0; i < program->len; i++) {
+    statement_t *statement = program->statements[i];
+    assert((statement->type == RETURN_STATEMENT) &&
+           "Statement is not a return statement");
+
+    return_statement_t *return_statement =
+        statement->statement.return_statement;
+
+    if (strcmp(return_statement->token->literal, "return") != 0) {
+      printf("return statement token literal is not 'return', got=%s\n",
+             return_statement->token->literal);
+      continue;
+    }
+  }
+
+  program_destroy(&program);
+  parser_destroy(&parser); /* destroys lexer too */
+  puts("Pass TestReturnStatements");
+};
+
 int main(void) {
 
   signal(SIGSEGV, handler);
 
   TestLetStatements();
+
+  TestReturnStatements();
 
   return 0;
 }

@@ -29,6 +29,7 @@ struct _exp_t {
 
 typedef enum {
   LET_STATEMENT,
+  RETURN_STATEMENT,
 } STATEMENT_TYPE;
 
 typedef struct _let_statement_t {
@@ -41,11 +42,21 @@ let_statement_t *let_statement_new(token_t *token, identifier_t *name,
                                    expression_t *value);
 void let_statement_destroy(let_statement_t **l_p);
 
+typedef struct _return_statement_t {
+  token_t *token;
+  expression_t *return_value;
+} return_statement_t;
+
+return_statement_t *return_statement_new(token_t *token,
+                                         expression_t *return_value);
+void return_statement_destroy(return_statement_t **r_p);
+
 /* forward declaration at the top */
 struct _statement_t {
   STATEMENT_TYPE type;
   union {
     let_statement_t *let_statement;
+    return_statement_t *return_statement;
   } statement;
 };
 statement_t *statement_new(void *statement, STATEMENT_TYPE st);

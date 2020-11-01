@@ -10,6 +10,10 @@ statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
     s->type = LET_STATEMENT;
     s->statement.let_statement = (let_statement_t *)statement;
     return s;
+  case RETURN_STATEMENT:
+    s->type = RETURN_STATEMENT;
+    s->statement.return_statement = (return_statement_t *)statement;
+    return s;
   default:
     return NULL;
   }
@@ -23,6 +27,8 @@ void statement_destroy(statement_t **s_p, STATEMENT_TYPE st) {
     case LET_STATEMENT:
       let_statement_destroy(&statement->statement.let_statement);
       break;
+    case RETURN_STATEMENT:
+      return_statement_destroy(&statement->statement.return_statement);
     }
     free(statement);
     *s_p = NULL;
@@ -75,6 +81,34 @@ void let_statement_destroy(let_statement_t **l_p) {
     /* if (l->value != NULL) expression_destroy(&l->value); */
     free(l);
     *l_p = NULL;
+  }
+}
+
+return_statement_t *return_statement_new(token_t *token,
+                                         expression_t *return_value) {
+  assert(token);
+  /* TODO: ASSERT return_value */
+  /* assert(return_value); */
+
+  return_statement_t *return_statement = malloc(sizeof(return_statement_t));
+  assert(return_statement);
+  return_statement->token = token;
+  return_statement->return_value = return_value;
+  return return_statement;
+}
+
+void return_statement_destroy(return_statement_t **r_p) {
+  assert(r_p);
+  if (*r_p) {
+    return_statement_t *return_statement = *r_p;
+    assert(return_statement);
+
+    token_destroy(&return_statement->token);
+    /* TODO: destroy expression */
+    /* if (return_statement->value != NULL)
+     * expression_destroy(&return_statement->value); */
+    free(return_statement);
+    *r_p = NULL;
   }
 }
 
