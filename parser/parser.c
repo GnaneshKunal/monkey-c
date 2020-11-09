@@ -192,6 +192,23 @@ return_statement_t *parser_parse_return_statement(parser_t *parser) {
   return return_statement_new(return_token, return_value);
 }
 
+
+expression_statement_t *parser_parse_expression_statement(parser_t* parser) {
+  assert(parser);
+  token_t *token = parser->cur_token;
+  expression_t *expression = parser_parse_expression(parser);
+  if (parser_peek_token_is(parser, SEMICOLON)) {
+    token_destroy(&parser->cur_token);
+    parser_next_token(parser);
+  }
+  return expression_statement_new(token, expression);
+}
+
+expression_t *parser_parse_expression(parser_t *parser) {
+  /* TODO */
+}
+
+
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type) {
   assert(parser);
   return parser->cur_token->type == token_type;

@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define _GNU_SOURCE
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,6 +10,8 @@
 #include <string.h>
 
 #include <limits.h>
+#include <inttypes.h>           /* contains macros for printing long
+                                   integers */
 
 /* stack trace */
 #include <execinfo.h>
@@ -34,6 +37,17 @@ static uint32_t gnu_hash(const uint8_t *name) {
     h = (h << 5) + h + *name;
   }
   return h;
+}
+
+static void assert_fail(bool value, char **err_msg_p) {
+  assert(err_msg_p);
+  char *err_msg = *err_msg_p;
+  if (!value) {
+    puts(err_msg);
+  }
+  free(err_msg);
+  *err_msg_p = NULL;
+  assert(value);
 }
 
 #endif

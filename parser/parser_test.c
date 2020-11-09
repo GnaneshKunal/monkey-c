@@ -142,6 +142,45 @@ return 5;                                       \
   puts("Pass TestReturnStatements");
 };
 
+void TestIdentifierExpressions() {
+  char *input = "foobar;";
+
+  lexer_t *lexer = lexer_new(input);
+  parser_t *parser = parser_new(lexer);
+  program_t *program = parser_parse_program(parser);
+
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser);
+    return;
+  }
+
+  assert((program != NULL) && "parse_program returned NULL");
+
+  char *err_msg = NULL;
+  asprintf(&err_msg, "program has not enough statements. got=%d", program->len);
+  assert_fail(program->len == 1, &err_msg);
+
+  statement_t *statement = program->statements[0];
+  asprintf(&err_msg, "Expected expression statement (%d), got=%d", EXPRESSION_STATEMENT, statement->type);
+  assert_fail(statement->type == EXPRESSION_STATEMENT, &err_msg);
+
+  expression_statement_t *expression_statement = statement->statement.expression_statement;
+  expression_t *expression = expression_statement->expression;
+  asprintf(&err_msg, "Expected identifier (%d), got=%d", IDENT_EXP, expression->type);
+  assert_fail(expression->type == IDENT_EXP, &err_msg);
+
+  identifier_t *identifier = expression->expression.identifier;
+  asprintf(&err_msg, "ident.Value not %s. got=%s", "foobar", identifier->value);
+  assert_fail(strcmp(identifier->value, "foobar") == 0, &err_msg);
+
+  asprintf(&err_msg, "ident token not %s. got=%s", "foobar", identifier->token->literal);
+  assert_fail(strcmp(identifier->token->literal, "foobar"), &err_msg);
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+
 int main(void) {
 
   signal(SIGSEGV, handler);
@@ -149,6 +188,8 @@ int main(void) {
   TestLetStatements();
 
   TestReturnStatements();
+
+  TestIdentifierExpressions();
 
   return 0;
 }
