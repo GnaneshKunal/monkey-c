@@ -14,6 +14,10 @@ statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
     s->type = RETURN_STATEMENT;
     s->statement.return_statement = (return_statement_t *)statement;
     return s;
+  case EXPRESSION_STATEMENT:
+    s->type = EXPRESSION_STATEMENT;
+    s->statement.expression_statement = (expression_statement_t *)statement;
+    return s;
   default:
     return NULL;
   }
@@ -29,6 +33,8 @@ void statement_destroy(statement_t **s_p, STATEMENT_TYPE st) {
       break;
     case RETURN_STATEMENT:
       return_statement_destroy(&statement->statement.return_statement);
+    case EXPRESSION_STATEMENT:
+      expression_statement_destroy(&statement->statement.expression_statement);
     }
     free(statement);
     *s_p = NULL;
@@ -50,9 +56,8 @@ char *statement_to_string(statement_t *statement) {
 }
 
 expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
-  assert(e_type);
   assert(expression);
-  expression_t *exp = malloc(sizeof(expression));
+  expression_t *exp = malloc(sizeof(expression_t));
   assert(exp);
   exp->type = e_type;
   switch (e_type) {
@@ -65,8 +70,7 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   default:
     assert("Invalid expression");
   }
-  /* assert here */
-  return NULL;
+  return exp;
 }
 
 void expression_destroy(expression_t **e_p) {
@@ -83,6 +87,8 @@ void expression_destroy(expression_t **e_p) {
     default:
       assert("Invalid expression");
     }
+    free(expression);
+    *e_p = NULL;
   }
 }
 
