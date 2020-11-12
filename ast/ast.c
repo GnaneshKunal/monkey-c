@@ -67,6 +67,8 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   case INT_EXP:
     exp->expression.integer = (integer_t *)expression;
     break;
+  case PREFIX_EXP:
+    exp->expression.prefix = (prefix_t *)expression;
   default:
     assert("Invalid expression");
   }
@@ -84,6 +86,9 @@ void expression_destroy(expression_t **e_p) {
     case INT_EXP:
       integer_destroy(&expression->expression.integer);
       break;
+    case PREFIX_EXP:
+      prefix_destroy(&expression->expression.prefix);
+      break;
     default:
       assert("Invalid expression");
     }
@@ -98,22 +103,24 @@ char *expression_to_string(expression_t *expression) {
   char *expression_str = NULL;
   switch (expression->type) {
   case INT_EXP:
-    asprintf(&expression_str, "%" PRId32, expression->expression.integer);
-    return expression_str;
+    return integer_to_string(expression->expression.integer);
   case IDENT_EXP:
-    asprintf(&expression_str, "%s", expression->expression.identifier->value);
-    return expression_str;
+    return identifier_to_string(expression->expression.identifier);
+  case PREFIX_EXP:
+    return prefix_to_string(expression->expression.prefix);
   default:
+    puts("Error: Unknown expression");
+    assert(false);
     return NULL;
   }
 }
 
-identifier_t *identifier_new(token_t *token, char *value) {
+identifier_t *identifier_new(token_t *token) {
   assert(token);
-  assert(value);
+  assert(token->literal);
   identifier_t *identifier = malloc(sizeof(identifier_t));
   identifier->token = token;
-  identifier->value = strdup(value);
+  identifier->value = strdup(token->literal);
   return identifier;
 }
 
@@ -134,18 +141,31 @@ char *identifier_to_string(identifier_t *identifier) {
   return strdup(identifier->value);
 }
 
-integer_t *integer_new(token_t *token, int32_t value) {
+integer_t *integer_new(token_t *token) {
   assert(token);
   integer_t *integer = malloc(sizeof(integer_t));
   integer->token = token;
+
+  int32_t value;
+  const char *errstr = NULL;
+  value = strtonum(token->literal, 1, INT32_MAX, &errstr);
+
+  if (errstr != NULL) {
+    printf("Invalid number: Unable to parse number %s\n", errstr);
+    assert(false);
+  }
+
+  assert(((INT32_MIN <= value) && (value <= INT32_MAX)) && "Invalid number: Number not in range.");
+
   integer->value = value;
   return integer;
 }
 
-integer_t *integer_destroy(integer_t **i_p) {
+void integer_destroy(integer_t **i_p) {
   assert(i_p);
   if (*i_p) {
     integer_t *integer = *i_p;
+    token_destroy(&integer->token);
     free(integer);
     *i_p = NULL;
   }
@@ -155,6 +175,36 @@ char *integer_to_string(integer_t *integer) {
   assert(integer);
   char *str = NULL;
   asprintf(&str, "%" PRId32, integer->value);
+  return str;
+}
+
+prefix_t *prefix_new(token_t *operator, expression_t *operand) {
+  assert(operator);
+  assert(operand);
+  prefix_t *prefix = malloc(sizeof(prefix_t));
+  assert(prefix);
+  prefix->operator = operator;
+  prefix->operand = operand;
+  return prefix;
+}
+
+void prefix_destroy(prefix_t **p_p) {
+  assert(p_p);
+  if (*p_p) {
+    prefix_t *prefix = *p_p;
+    expression_destroy(&prefix->operand);
+    token_destroy(&prefix->operator);
+    free(prefix);
+    *p_p = NULL;
+  }
+}
+
+char *prefix_to_string(prefix_t *prefix) {
+  assert(prefix);
+  char *str = NULL;
+  char *expression_str = expression_to_string(prefix->operand);
+  asprintf(&str, "(%s%s)", prefix->operator->literal, expression_str);
+  free(expression_str);
   return str;
 }
 

@@ -14,6 +14,9 @@ parser_t *parser_new(lexer_t *l) {
 
   p->prefix_parselets = calloc(RETURN + 1, sizeof(prefix_parse_fn));
   p->prefix_parselets[IDENT] = parser_parse_identifier;
+  p->prefix_parselets[INT] = parser_parse_integer;
+  p->prefix_parselets[BANG] = parser_parse_prefix;
+  p->prefix_parselets[MINUS] = parser_parse_prefix;
   assert(p->prefix_parselets);
 
   return p;
@@ -162,7 +165,7 @@ let_statement_t *parser_parse_let_statement(parser_t *parser) {
   }
 
   identifier_t *name =
-      identifier_new(parser->cur_token, parser->cur_token->literal);
+      identifier_new(parser->cur_token);
 
   if (!parser_expect_peek(parser, ASSIGN)) {
     return NULL;
@@ -206,9 +209,10 @@ expression_statement_t *parser_parse_expression_statement(parser_t *parser) {
   /* GIVE PRECEDENCE */
   expression_t *expression = parser_parse_expression(parser, LOWEST_PRECEDENCE);
   if (parser_peek_token_is(parser, SEMICOLON)) {
-    token_destroy(&parser->cur_token);
+    /* token_destroy(&parser->cur_token); */
     parser_next_token(parser);
   }
+  token_destroy(&parser->cur_token);
   expression_statement_t *expression_statement =
       expression_statement_new(token, expression);
   return expression_statement;
@@ -219,29 +223,46 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
   prefix_parse_fn prefix = parser->prefix_parselets[token->type];
 
   if (prefix == NULL) {
-    printf("Error: %s(%d)\n", token->literal, token->type);
-    assert("Couldn't find a prefix for token");
+    char *err_str = NULL;
+    asprintf(&err_str, "Error: %s(%d)\n", token->literal, token->type);
+    parser_append_error(parser, err_str);
+    free(err_str);
+    /* printf("Error: %s(%d)\n", token->literal, token->type); */
+    /* assert("Couldn't find a prefix for token"); */
     return NULL;
   }
 
   expression_t *left_expression = prefix(parser, token, precedence);
 
-  parser_next_token(parser);
+  /* parser_next_token(parser); */
 
   return left_expression;
 }
 
 expression_t *parser_parse_identifier(parser_t *parser, token_t *token,
                                       PRECEDENCE precedence) {
-  /*
-   * TODO: `identifier_new`
-   * Take identifier value from token
-   *
-   */
   assert(token);
-  identifier_t *identifier = identifier_new(token, token->literal);
+  identifier_t *identifier = identifier_new(token);
   expression_t *expression = expression_new(IDENT_EXP, identifier);
   return expression;
+}
+
+expression_t *parser_parse_integer(parser_t *parser, token_t *token, PRECEDENCE precedence) {
+  assert(token);
+  integer_t *integer = integer_new(token);
+  expression_t *expression = expression_new(INT_EXP, integer);
+  return expression;
+}
+
+expression_t *parser_parse_prefix(parser_t *parser, token_t *token, PRECEDENCE precedence) {
+  assert(parser);
+  assert(token);
+  token_t *operator = token;
+
+  parser_next_token(parser);
+
+  expression_t *operand = parser_parse_expression(parser, PREFIX_PRECEDENCE);
+  return expression_new(PREFIX_EXP, prefix_new(operator, operand));
 }
 
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type) {

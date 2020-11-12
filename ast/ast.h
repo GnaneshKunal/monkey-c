@@ -10,6 +10,7 @@ typedef struct _statement_t statement_t;
 typedef enum {
   IDENT_EXP,
   INT_EXP,
+  PREFIX_EXP,
 } EXPRESSION_TYPE;
 
 typedef struct _identifier_t {
@@ -17,7 +18,7 @@ typedef struct _identifier_t {
   char *value;
 } identifier_t;
 
-identifier_t *identifier_new(token_t *token, char *value);
+identifier_t *identifier_new(token_t *token);
 void identifier_destroy(identifier_t **i_p);
 char *identifier_to_string(identifier_t *identifier);
 
@@ -26,9 +27,18 @@ typedef struct _integer_t {
   int32_t value;
 } integer_t;
 
-integer_t *integer_new(token_t *token, int32_t value);
-integer_t *integer_destroy(integer_t **i_p);
+integer_t *integer_new(token_t *token);
+void integer_destroy(integer_t **i_p);
 char *integer_to_string(integer_t *integer);
+
+typedef struct _prefix_t {
+  token_t *operator;
+  expression_t *operand;
+} prefix_t;
+
+prefix_t *prefix_new(token_t *token, expression_t *operand);
+void prefix_destroy(prefix_t **p_p);
+char *prefix_to_string(prefix_t *prefix);
 
 /* forward declaration at the top */
 struct _expression_t {
@@ -37,6 +47,7 @@ struct _expression_t {
     /* expressions */
     identifier_t *identifier;
     integer_t *integer;
+    prefix_t *prefix;
   } expression;
 };
 

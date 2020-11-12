@@ -1,14 +1,20 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#ifdef __linux__
 #define _GNU_SOURCE
-#include <assert.h>
-#include <stdbool.h>
+#include <bsd/stdlib.h>
+#include <bsd/stdio.h>
 #include <stdint.h>
+#include <bsd/string.h>
+#else
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#endif
 
+#include <assert.h>
+#include <stdbool.h>
 #include <limits.h>
 #include <inttypes.h>           /* contains macros for printing long
                                    integers */

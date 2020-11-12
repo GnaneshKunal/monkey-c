@@ -31,7 +31,7 @@ void lexer_skip_whitespace(lexer_t *l) {
   }
 }
 
-lexer_t *lexer_new(char *input) {
+lexer_t *lexer_new(const char *input) {
   assert(input);
 
   lexer_t *l = malloc(sizeof(lexer_t));
