@@ -19,6 +19,16 @@ parser_t *parser_new(lexer_t *l) {
   p->prefix_parselets[MINUS] = parser_parse_prefix;
   assert(p->prefix_parselets);
 
+  p->infix_parselets = calloc(RETURN + 1, sizeof(infix_parse_fn));
+  p->infix_parselets[PLUS] = parser_parse_infix;
+  p->infix_parselets[MINUS] = parser_parse_infix;
+  p->infix_parselets[SLASH] = parser_parse_infix;
+  p->infix_parselets[ASTERISK] = parser_parse_infix;
+  p->infix_parselets[EQ] = parser_parse_infix;
+  p->infix_parselets[NOT_EQ] = parser_parse_infix;
+  p->infix_parselets[LT] = parser_parse_infix;
+  p->infix_parselets[GT] = parser_parse_infix;
+
   return p;
 }
 
@@ -50,6 +60,7 @@ void parser_destroy(parser_t **p_p) {
     free(p->errors);
 
     free(p->prefix_parselets);
+    free(p->infix_parselets);
     assert(p->l);
     lexer_destroy(&p->l);
     free(p);
@@ -212,7 +223,7 @@ expression_statement_t *parser_parse_expression_statement(parser_t *parser) {
     /* token_destroy(&parser->cur_token); */
     parser_next_token(parser);
   }
-  token_destroy(&parser->cur_token);
+  /* token_destroy(&parser->cur_token); */
   expression_statement_t *expression_statement =
       expression_statement_new(token, expression);
   return expression_statement;
@@ -233,6 +244,20 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
   }
 
   expression_t *left_expression = prefix(parser, token, precedence);
+
+  while (!parser_peek_token_is(parser, SEMICOLON) && precedence < parser_peek_precedence(parser)) {
+    parser_next_token(parser);
+
+    token = parser->cur_token;
+
+    infix_parse_fn infix = parser->infix_parselets[token->type];
+
+    if (infix == NULL) {
+      return left_expression;
+    }
+
+    left_expression = infix(parser, token, precedence, left_expression);
+  }
 
   /* parser_next_token(parser); */
 
@@ -265,6 +290,22 @@ expression_t *parser_parse_prefix(parser_t *parser, token_t *token, PRECEDENCE p
   return expression_new(PREFIX_EXP, prefix_new(operator, operand));
 }
 
+expression_t *parser_parse_infix(parser_t *parser, token_t *token, PRECEDENCE precedence, expression_t *left) {
+  assert(parser);
+  assert(token);
+  assert(left);
+
+  token_t *operator = token;
+  PRECEDENCE cur_precedence = token_get_precedence(operator);
+
+  parser_next_token(parser);
+
+  expression_t *right = parser_parse_expression(parser, cur_precedence);
+  infix_t *infix = infix_new(operator, left, right);
+  expression_t *expression = expression_new(INFIX_EXP, infix);
+  return expression;
+}
+
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type) {
   assert(parser);
   return parser->cur_token->type == token_type;
@@ -283,4 +324,34 @@ bool parser_expect_peek(parser_t *parser, TOKEN token_type) {
     parser_peek_error(parser, token_type);
     return false;
   }
+}
+
+PRECEDENCE token_get_precedence(token_t *token) {
+  assert(token);
+  switch (token->type) {
+  case PLUS:
+  case MINUS:
+    return SUM_PRECEDENCE;
+  case SLASH:
+  case ASTERISK:
+    return PRODUCT_PRECEDENCE;
+  case EQ:
+  case NOT_EQ:
+    return EQUALS_PRECEDENCE;
+  case LT:
+  case GT:
+    return LESSGREATER_PRECEDENCE;
+  default:
+    return LOWEST_PRECEDENCE;
+  }
+}
+
+PRECEDENCE parser_cur_precedence(parser_t *parser) {
+  assert(parser);
+  return token_get_precedence(parser->cur_token);
+}
+
+PRECEDENCE parser_peek_precedence(parser_t *parser) {
+  assert(parser);
+  return token_get_precedence(parser->peek_token);
 }

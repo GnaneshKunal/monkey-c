@@ -305,6 +305,69 @@ void TestParsingPrefixExpression(void) {
   puts("Pass: TestParsingPrefixExpression");
 }
 
+void TestParsingInfixExpressions(void) {
+
+  typedef struct _infix_results_t {
+    char *input;
+    int32_t left_value;
+    char *operator;
+    int32_t right_value;
+  } infix_results_t;
+
+  infix_results_t infix_tests[] = {
+    {"5 + 5;", 5, "+", 5},
+    {"5 - 5;", 5, "-", 5},
+    {"5 * 5;", 5, "*", 5},
+    {"5 / 5;", 5, "/", 5},
+    {"5 > 5;", 5, ">", 5},
+    {"5 < 5;", 5, "<", 5},
+    {"5 == 5;", 5, "==", 5},
+    {"5 != 5;", 5, "!=", 5},
+  };
+
+
+  size_t tests_len = sizeof(infix_tests) / sizeof(*infix_tests);
+
+  for (int i = 0; i < tests_len; i++) {
+    lexer_t *lexer = lexer_new(infix_tests[i].input);
+    parser_t *parser = parser_new(lexer);
+    program_t *program = parser_parse_program(parser);
+
+    char *err_msg = NULL;
+    asprintf(&err_msg, "program.statements does not contain %d statements. got=%d\n", 1, program->len);
+    assert_fail(program->len == 1, &err_msg);
+
+    statement_t *statement = program->statements[0];
+    asprintf(&err_msg, "program.statements[0] is not expression_statement_t (%d). got=%d\n", EXPRESSION_STATEMENT, statement->type);
+    assert_fail(statement->type == EXPRESSION_STATEMENT, &err_msg);
+
+    expression_statement_t *expression_statement = statement->statement.expression_statement;
+    expression_t *expression = expression_statement->expression;
+    asprintf(&err_msg, "expression is not a infix expression (%d). got (%d)\n", INFIX_EXP, expression->type);
+    assert_fail(expression->type == INFIX_EXP, &err_msg);
+
+    infix_t *infix = expression->expression.infix;
+    asprintf(&err_msg, "operator is not '%s'. got=%s\n", infix_tests[i].operator, infix->operator->literal);
+    assert_fail(strcmp(infix->operator->literal, infix_tests[i].operator) == 0, &err_msg);
+
+    if (!test_integer_literal(infix->left, infix_tests[i].left_value)) {
+      program_destroy(&program);
+      parser_destroy(&parser);
+      return;
+    }
+
+    if (!test_integer_literal(infix->right, infix_tests[i].right_value)) {
+      program_destroy(&program);
+      parser_destroy(&parser);
+      return;
+    }
+    program_destroy(&program);
+    parser_destroy(&parser);
+  }
+
+  puts("Pass: TestParsingInfixExpressions");
+}
+
 int main(void) {
 
   signal(SIGSEGV, handler);
@@ -318,6 +381,8 @@ int main(void) {
   TestIntegerLiteralExpression();
 
   TestParsingPrefixExpression();
+
+  TestParsingInfixExpressions();
 
   return 0;
 }

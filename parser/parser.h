@@ -11,7 +11,7 @@ typedef enum {
   EQUALS_PRECEDENCE,
   LESSGREATER_PRECEDENCE,
   SUM_PRECEDENCE,
-  PRODUCE_PRECEDENCE,
+  PRODUCT_PRECEDENCE,
   PREFIX_PRECEDENCE,
   CALL_PRECEDENCE,
 } PRECEDENCE;
@@ -59,5 +59,11 @@ expression_t *parser_parse_integer(parser_t *parser, token_t *token,
 
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence);
+
+expression_t *parser_parse_infix(parser_t *parser, token_t *token, PRECEDENCE precedence, expression_t *left);
+
+PRECEDENCE token_get_precedence(token_t *token);
+PRECEDENCE parser_cur_precedence(parser_t *parser);
+PRECEDENCE parser_peek_precedence(parser_t *parser);
 
 #endif

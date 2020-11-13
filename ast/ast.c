@@ -69,6 +69,8 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
     break;
   case PREFIX_EXP:
     exp->expression.prefix = (prefix_t *)expression;
+  case INFIX_EXP:
+    exp->expression.infix = (infix_t *)expression;
   default:
     assert("Invalid expression");
   }
@@ -89,6 +91,9 @@ void expression_destroy(expression_t **e_p) {
     case PREFIX_EXP:
       prefix_destroy(&expression->expression.prefix);
       break;
+    case INFIX_EXP:
+      infix_destroy(&expression->expression.infix);
+      break;
     default:
       assert("Invalid expression");
     }
@@ -108,6 +113,8 @@ char *expression_to_string(expression_t *expression) {
     return identifier_to_string(expression->expression.identifier);
   case PREFIX_EXP:
     return prefix_to_string(expression->expression.prefix);
+  case INFIX_EXP:
+    return infix_to_string(expression->expression.infix);
   default:
     puts("Error: Unknown expression");
     assert(false);
@@ -205,6 +212,40 @@ char *prefix_to_string(prefix_t *prefix) {
   char *expression_str = expression_to_string(prefix->operand);
   asprintf(&str, "(%s%s)", prefix->operator->literal, expression_str);
   free(expression_str);
+  return str;
+}
+
+infix_t *infix_new(token_t *operator, expression_t *left, expression_t *right) {
+  assert(operator);
+  assert(left);
+  assert(right);
+  infix_t *infix = malloc(sizeof(infix_t));
+  assert(infix);
+  infix->operator = operator;
+  infix->left = left;
+  infix->right = right;
+  return infix;
+}
+
+void infix_destroy(infix_t **i_p) {
+  assert(i_p);
+  if (*i_p) {
+    infix_t *infix = *i_p;
+    token_destroy(&infix->operator);
+    expression_destroy(&infix->left);
+    expression_destroy(&infix->right);
+    free(infix);
+    *i_p = NULL;
+  }
+}
+
+char *infix_to_string(infix_t *infix) {
+  char *str = NULL;
+  char *left_exp_str = expression_to_string(infix->left);
+  char *right_exp_str = expression_to_string(infix->right);
+  asprintf(&str, "(%s %s %s)", left_exp_str, infix->operator->literal, right_exp_str);
+  free(left_exp_str);
+  free(right_exp_str);
   return str;
 }
 

@@ -11,6 +11,7 @@ typedef enum {
   IDENT_EXP,
   INT_EXP,
   PREFIX_EXP,
+  INFIX_EXP,
 } EXPRESSION_TYPE;
 
 typedef struct _identifier_t {
@@ -40,6 +41,16 @@ prefix_t *prefix_new(token_t *token, expression_t *operand);
 void prefix_destroy(prefix_t **p_p);
 char *prefix_to_string(prefix_t *prefix);
 
+typedef struct _infix_t {
+  expression_t *left;
+  token_t *operator;
+  expression_t *right;
+} infix_t;
+
+infix_t *infix_new(token_t *operator, expression_t *left, expression_t *right);
+void infix_destroy(infix_t **i_p);
+char *infix_to_string(infix_t *infix);
+
 /* forward declaration at the top */
 struct _expression_t {
   EXPRESSION_TYPE type;
@@ -48,6 +59,7 @@ struct _expression_t {
     identifier_t *identifier;
     integer_t *integer;
     prefix_t *prefix;
+    infix_t *infix;
   } expression;
 };
 
