@@ -50,6 +50,9 @@ char *statement_to_string(statement_t *statement) {
   case RETURN_STATEMENT:
     return return_statement_to_string(
         (return_statement_t *)statement->statement.return_statement);
+  case EXPRESSION_STATEMENT:
+    return expression_statement_to_string(
+        (expression_statement_t *)statement->statement.expression_statement);
   default:
     return NULL;
   }
@@ -162,7 +165,8 @@ integer_t *integer_new(token_t *token) {
     assert(false);
   }
 
-  assert(((INT32_MIN <= value) && (value <= INT32_MAX)) && "Invalid number: Number not in range.");
+  assert(((INT32_MIN <= value) && (value <= INT32_MAX)) &&
+         "Invalid number: Number not in range.");
 
   integer->value = value;
   return integer;
@@ -185,12 +189,12 @@ char *integer_to_string(integer_t *integer) {
   return str;
 }
 
-prefix_t *prefix_new(token_t *operator, expression_t *operand) {
+prefix_t *prefix_new(token_t *operator, expression_t * operand) {
   assert(operator);
   assert(operand);
   prefix_t *prefix = malloc(sizeof(prefix_t));
   assert(prefix);
-  prefix->operator = operator;
+  prefix->operator= operator;
   prefix->operand = operand;
   return prefix;
 }
@@ -215,13 +219,14 @@ char *prefix_to_string(prefix_t *prefix) {
   return str;
 }
 
-infix_t *infix_new(token_t *operator, expression_t *left, expression_t *right) {
+infix_t *infix_new(token_t *operator, expression_t * left,
+                   expression_t * right) {
   assert(operator);
   assert(left);
   assert(right);
   infix_t *infix = malloc(sizeof(infix_t));
   assert(infix);
-  infix->operator = operator;
+  infix->operator= operator;
   infix->left = left;
   infix->right = right;
   return infix;
@@ -243,7 +248,8 @@ char *infix_to_string(infix_t *infix) {
   char *str = NULL;
   char *left_exp_str = expression_to_string(infix->left);
   char *right_exp_str = expression_to_string(infix->right);
-  asprintf(&str, "(%s %s %s)", left_exp_str, infix->operator->literal, right_exp_str);
+  asprintf(&str, "(%s %s %s)", left_exp_str, infix->operator->literal,
+           right_exp_str);
   free(left_exp_str);
   free(right_exp_str);
   return str;
@@ -347,11 +353,7 @@ void expression_statement_destroy(expression_statement_t **e_p) {
 char *
 expression_statement_to_string(expression_statement_t *expression_statement) {
   assert(expression_statement);
-  char *str = NULL;
-  char *exp_str = expression_to_string(expression_statement->expression);
-  asprintf(&str, "%s;", exp_str);
-  free(exp_str);
-  return str;
+  return expression_to_string(expression_statement->expression);
 }
 
 program_t *program_new() {

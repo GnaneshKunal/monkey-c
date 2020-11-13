@@ -47,7 +47,8 @@ typedef struct _infix_t {
   expression_t *right;
 } infix_t;
 
-infix_t *infix_new(token_t *operator, expression_t *left, expression_t *right);
+infix_t *infix_new(token_t *operator, expression_t * left,
+                   expression_t * right);
 void infix_destroy(infix_t **i_p);
 char *infix_to_string(infix_t *infix);
 

@@ -60,7 +60,8 @@ expression_t *parser_parse_integer(parser_t *parser, token_t *token,
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence);
 
-expression_t *parser_parse_infix(parser_t *parser, token_t *token, PRECEDENCE precedence, expression_t *left);
+expression_t *parser_parse_infix(parser_t *parser, token_t *token,
+                                 PRECEDENCE precedence, expression_t *left);
 
 PRECEDENCE token_get_precedence(token_t *token);
 PRECEDENCE parser_cur_precedence(parser_t *parser);

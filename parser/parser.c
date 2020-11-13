@@ -175,8 +175,7 @@ let_statement_t *parser_parse_let_statement(parser_t *parser) {
     return NULL;
   }
 
-  identifier_t *name =
-      identifier_new(parser->cur_token);
+  identifier_t *name = identifier_new(parser->cur_token);
 
   if (!parser_expect_peek(parser, ASSIGN)) {
     return NULL;
@@ -245,7 +244,8 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
 
   expression_t *left_expression = prefix(parser, token, precedence);
 
-  while (!parser_peek_token_is(parser, SEMICOLON) && precedence < parser_peek_precedence(parser)) {
+  while (!parser_peek_token_is(parser, SEMICOLON) &&
+         precedence < parser_peek_precedence(parser)) {
     parser_next_token(parser);
 
     token = parser->cur_token;
@@ -259,7 +259,11 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
     left_expression = infix(parser, token, precedence, left_expression);
   }
 
-  /* parser_next_token(parser); */
+  /* Should check for semicolon too? */
+  if (parser_peek_token_is(parser, EF)) {
+    parser_next_token(parser);
+    token_destroy(&parser->cur_token);
+  }
 
   return left_expression;
 }
@@ -272,17 +276,19 @@ expression_t *parser_parse_identifier(parser_t *parser, token_t *token,
   return expression;
 }
 
-expression_t *parser_parse_integer(parser_t *parser, token_t *token, PRECEDENCE precedence) {
+expression_t *parser_parse_integer(parser_t *parser, token_t *token,
+                                   PRECEDENCE precedence) {
   assert(token);
   integer_t *integer = integer_new(token);
   expression_t *expression = expression_new(INT_EXP, integer);
   return expression;
 }
 
-expression_t *parser_parse_prefix(parser_t *parser, token_t *token, PRECEDENCE precedence) {
+expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
+                                  PRECEDENCE precedence) {
   assert(parser);
   assert(token);
-  token_t *operator = token;
+  token_t *operator= token;
 
   parser_next_token(parser);
 
@@ -290,12 +296,13 @@ expression_t *parser_parse_prefix(parser_t *parser, token_t *token, PRECEDENCE p
   return expression_new(PREFIX_EXP, prefix_new(operator, operand));
 }
 
-expression_t *parser_parse_infix(parser_t *parser, token_t *token, PRECEDENCE precedence, expression_t *left) {
+expression_t *parser_parse_infix(parser_t *parser, token_t *token,
+                                 PRECEDENCE precedence, expression_t *left) {
   assert(parser);
   assert(token);
   assert(left);
 
-  token_t *operator = token;
+  token_t *operator= token;
   PRECEDENCE cur_precedence = token_get_precedence(operator);
 
   parser_next_token(parser);
