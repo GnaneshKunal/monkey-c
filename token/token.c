@@ -3,13 +3,13 @@
 TOKEN *keywords_initialize(void) {
   TOKEN *token_table = calloc(sizeof(TOKEN), KEYWORDS_SIZE);
   assert(token_table);
-  token_table[gnu_hash((const uint8_t *)"fn") % KEYWORDS_SIZE] = FUNCTION;
-  token_table[gnu_hash((const uint8_t *)"let") % KEYWORDS_SIZE] = LET;
-  token_table[gnu_hash((const uint8_t *)"true") % KEYWORDS_SIZE] = TRUE;
-  token_table[gnu_hash((const uint8_t *)"false") % KEYWORDS_SIZE] = FALSE;
-  token_table[gnu_hash((const uint8_t *)"if") % KEYWORDS_SIZE] = IF;
-  token_table[gnu_hash((const uint8_t *)"else") % KEYWORDS_SIZE] = ELSE;
-  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] = RETURN;
+  token_table[gnu_hash((const uint8_t *)"fn") % KEYWORDS_SIZE] = FUNCTION_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"let") % KEYWORDS_SIZE] = LET_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"true") % KEYWORDS_SIZE] = TRUE_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"false") % KEYWORDS_SIZE] = FALSE_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"if") % KEYWORDS_SIZE] = IF_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"else") % KEYWORDS_SIZE] = ELSE_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] = RETURN_TOKEN;
 
   return token_table;
 }
@@ -31,60 +31,60 @@ void keywords_destroy(TOKEN **t_p) {
 
 char *token_to_str(TokenType t) {
   switch (t) {
-  case ILLEGAL:
-    return strdup("ILLEGAL");
-  case EF:
-    return strdup("EF");
-  case IDENT:
-    return strdup("IDENT");
-  case INT:
-    return strdup("INT");
-  case ASSIGN:
-    return strdup("ASSIGN");
-  case PLUS:
-    return strdup("PLUS");
-  case MINUS:
-    return strdup("MINUS");
-  case BANG:
-    return strdup("BANG");
-  case ASTERISK:
-    return strdup("ASTERISK");
-  case SLASH:
-    return strdup("SLASH");
-  case LT:
-    return strdup("LT");
-  case GT:
-    return strdup("GT");
-  case EQ:
-    return strdup("EQ");
-  case NOT_EQ:
-    return strdup("NOT_EQ");
-  case COMMA:
-    return strdup("COMMA");
-  case SEMICOLON:
-    return strdup("SEMICOLON");
-  case LPAREN:
-    return strdup("LPAREN");
-  case RPAREN:
-    return strdup("RPAREN");
-  case LBRACE:
-    return strdup("LBRACE");
-  case RBRACE:
-    return strdup("RBRACE");
-  case FUNCTION:
-    return strdup("FUNCTION");
-  case LET:
-    return strdup("LET");
-  case TRUE:
-    return strdup("TRUE");
-  case FALSE:
-    return strdup("FALSE");
-  case IF:
-    return strdup("IF");
-  case ELSE:
-    return strdup("ELSE");
-  case RETURN:
-    return strdup("RETURN");
+  case ILLEGAL_TOKEN:
+    return strdup("ILLEGAL_TOKEN");
+  case EOF_TOKEN:
+    return strdup("EF_TOKEN");
+  case IDENT_TOKEN:
+    return strdup("IDENT_TOKEN");
+  case INT_TOKEN:
+    return strdup("INT_TOKEN");
+  case ASSIGN_TOKEN:
+    return strdup("ASSIGN_TOKEN");
+  case PLUS_TOKEN:
+    return strdup("PLUS_TOKEN");
+  case MINUS_TOKEN:
+    return strdup("MINUS_TOKEN");
+  case BANG_TOKEN:
+    return strdup("BANG_TOKEN");
+  case ASTERISK_TOKEN:
+    return strdup("ASTERISK_TOKEN");
+  case SLASH_TOKEN:
+    return strdup("SLASH_TOKEN");
+  case LT_TOKEN:
+    return strdup("LT_TOKEN");
+  case GT_TOKEN:
+    return strdup("GT_TOKEN");
+  case EQ_TOKEN:
+    return strdup("EQ_TOKEN");
+  case NOT_EQ_TOKEN:
+    return strdup("NOT_EQ_TOKEN");
+  case COMMA_TOKEN:
+    return strdup("COMMA_TOKEN");
+  case SEMICOLON_TOKEN:
+    return strdup("SEMICOLON_TOKEN");
+  case LPAREN_TOKEN:
+    return strdup("LPAREN_TOKEN");
+  case RPAREN_TOKEN:
+    return strdup("RPAREN_TOKEN");
+  case LBRACE_TOKEN:
+    return strdup("LBRACE_TOKEN");
+  case RBRACE_TOKEN:
+    return strdup("RBRACE_TOKEN");
+  case FUNCTION_TOKEN:
+    return strdup("FUNCTION_TOKEN");
+  case LET_TOKEN:
+    return strdup("LET_TOKEN");
+  case TRUE_TOKEN:
+    return strdup("TRUE_TOKEN");
+  case FALSE_TOKEN:
+    return strdup("FALSE_TOKEN");
+  case IF_TOKEN:
+    return strdup("IF_TOKEN");
+  case ELSE_TOKEN:
+    return strdup("ELSE_TOKEN");
+  case RETURN_TOKEN:
+    return strdup("RETURN_TOKEN");
   }
 
   return NULL;

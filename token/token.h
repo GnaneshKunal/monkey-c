@@ -6,43 +6,43 @@
 #define KEYWORDS_SIZE 50
 
 typedef enum {
-  ILLEGAL,
-  EF,
+  ILLEGAL_TOKEN,
+  EOF_TOKEN,
 
   /* Identifiers + literals */
-  IDENT, /* add, foobar, x, y, .... */
-  INT,
+  IDENT_TOKEN, /* add, foobar, x, y, .... */
+  INT_TOKEN,
 
   /* Operators */
-  ASSIGN,
-  PLUS,
-  MINUS,
-  BANG,
-  ASTERISK,
-  SLASH,
+  ASSIGN_TOKEN,
+  PLUS_TOKEN,
+  MINUS_TOKEN,
+  BANG_TOKEN,
+  ASTERISK_TOKEN,
+  SLASH_TOKEN,
 
-  LT,
-  GT,
+  LT_TOKEN,
+  GT_TOKEN,
 
-  EQ,
-  NOT_EQ,
+  EQ_TOKEN,
+  NOT_EQ_TOKEN,
 
   /* Delimiters */
-  COMMA,
-  SEMICOLON,
+  COMMA_TOKEN,
+  SEMICOLON_TOKEN,
 
-  LPAREN,
-  RPAREN,
-  LBRACE,
-  RBRACE,
+  LPAREN_TOKEN,
+  RPAREN_TOKEN,
+  LBRACE_TOKEN,
+  RBRACE_TOKEN,
 
-  FUNCTION,
-  LET,
-  TRUE,
-  FALSE,
-  IF,
-  ELSE,
-  RETURN,
+  FUNCTION_TOKEN,
+  LET_TOKEN,
+  TRUE_TOKEN,
+  FALSE_TOKEN,
+  IF_TOKEN,
+  ELSE_TOKEN,
+  RETURN_TOKEN,
 } TOKEN;
 
 typedef TOKEN TokenType;

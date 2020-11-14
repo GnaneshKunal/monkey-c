@@ -24,62 +24,62 @@ if (5 < 10) {                    \
     char *expected_literal;
   } test_token_t;
 
-  test_token_t tests[] = {{LET, "let"},     {IDENT, "five"},
-                          {ASSIGN, "="},    {INT, "5"},
-                          {SEMICOLON, ";"}, {LET, "let"},
-                          {IDENT, "ten"},   {ASSIGN, "="},
-                          {INT, "10"},      {SEMICOLON, ";"},
-                          {LET, "let"},     {IDENT, "add"},
-                          {ASSIGN, "="},    {FUNCTION, "fn"},
-                          {LPAREN, "("},    {IDENT, "x"},
-                          {COMMA, ","},     {IDENT, "y"},
-                          {RPAREN, ")"},    {LBRACE, "{"},
-                          {IDENT, "x"},     {PLUS, "+"},
-                          {IDENT, "y"},     {SEMICOLON, ";"},
-                          {RBRACE, "}"},    {SEMICOLON, ";"},
-                          {LET, "let"},     {IDENT, "result"},
-                          {ASSIGN, "="},    {IDENT, "add"},
-                          {LPAREN, "("},    {IDENT, "five"},
-                          {COMMA, ","},     {IDENT, "ten"},
-                          {RPAREN, ")"},    {SEMICOLON, ";"},
-                          {BANG, "!"},      {MINUS, "-"},
-                          {SLASH, "/"},     {ASTERISK, "*"},
-                          {INT, "5"},       {SEMICOLON, ";"},
-                          {INT, "5"},       {LT, "<"},
-                          {INT, "10"},      {GT, ">"},
-                          {INT, "5"},       {SEMICOLON, ";"},
-                          {IF, "if"},       {LPAREN, "("},
-                          {INT, "5"},       {LT, "<"},
-                          {INT, "10"},      {RPAREN, ")"},
-                          {LBRACE, "{"},    {RETURN, "return"},
-                          {TRUE, "true"},   {SEMICOLON, ";"},
-                          {RBRACE, "}"},    {ELSE, "else"},
-                          {LBRACE, "{"},    {RETURN, "return"},
-                          {FALSE, "false"}, {SEMICOLON, ";"},
-                          {RBRACE, "}"},    {INT, "10"},
-                          {EQ, "=="},       {INT, "10"},
-                          {SEMICOLON, ";"}, {INT, "10"},
-                          {NOT_EQ, "!="},   {INT, "9"},
-                          {SEMICOLON, ";"}, {EF, ""}};
+  test_token_t tests[] = {{LET_TOKEN, "let"},     {IDENT_TOKEN, "five"},
+                          {ASSIGN_TOKEN, "="},    {INT_TOKEN, "5"},
+                          {SEMICOLON_TOKEN, ";"}, {LET_TOKEN, "let"},
+                          {IDENT_TOKEN, "ten"},   {ASSIGN_TOKEN, "="},
+                          {INT_TOKEN, "10"},      {SEMICOLON_TOKEN, ";"},
+                          {LET_TOKEN, "let"},     {IDENT_TOKEN, "add"},
+                          {ASSIGN_TOKEN, "="},    {FUNCTION_TOKEN, "fn"},
+                          {LPAREN_TOKEN, "("},    {IDENT_TOKEN, "x"},
+                          {COMMA_TOKEN, ","},     {IDENT_TOKEN, "y"},
+                          {RPAREN_TOKEN, ")"},    {LBRACE_TOKEN, "{"},
+                          {IDENT_TOKEN, "x"},     {PLUS_TOKEN, "+"},
+                          {IDENT_TOKEN, "y"},     {SEMICOLON_TOKEN, ";"},
+                          {RBRACE_TOKEN, "}"},    {SEMICOLON_TOKEN, ";"},
+                          {LET_TOKEN, "let"},     {IDENT_TOKEN, "result"},
+                          {ASSIGN_TOKEN, "="},    {IDENT_TOKEN, "add"},
+                          {LPAREN_TOKEN, "("},    {IDENT_TOKEN, "five"},
+                          {COMMA_TOKEN, ","},     {IDENT_TOKEN, "ten"},
+                          {RPAREN_TOKEN, ")"},    {SEMICOLON_TOKEN, ";"},
+                          {BANG_TOKEN, "!"},      {MINUS_TOKEN, "-"},
+                          {SLASH_TOKEN, "/"},     {ASTERISK_TOKEN, "*"},
+                          {INT_TOKEN, "5"},       {SEMICOLON_TOKEN, ";"},
+                          {INT_TOKEN, "5"},       {LT_TOKEN, "<"},
+                          {INT_TOKEN, "10"},      {GT_TOKEN, ">"},
+                          {INT_TOKEN, "5"},       {SEMICOLON_TOKEN, ";"},
+                          {IF_TOKEN, "if"},       {LPAREN_TOKEN, "("},
+                          {INT_TOKEN, "5"},       {LT_TOKEN, "<"},
+                          {INT_TOKEN, "10"},      {RPAREN_TOKEN, ")"},
+                          {LBRACE_TOKEN, "{"},    {RETURN_TOKEN, "return"},
+                          {TRUE_TOKEN, "true"},   {SEMICOLON_TOKEN, ";"},
+                          {RBRACE_TOKEN, "}"},    {ELSE_TOKEN, "else"},
+                          {LBRACE_TOKEN, "{"},    {RETURN_TOKEN, "return"},
+                          {FALSE_TOKEN, "false"}, {SEMICOLON_TOKEN, ";"},
+                          {RBRACE_TOKEN, "}"},    {INT_TOKEN, "10"},
+                          {EQ_TOKEN, "=="},       {INT_TOKEN, "10"},
+                          {SEMICOLON_TOKEN, ";"}, {INT_TOKEN, "10"},
+                          {NOT_EQ_TOKEN, "!="},   {INT_TOKEN, "9"},
+                          {SEMICOLON_TOKEN, ";"}, {EOF_TOKEN, ""}};
   size_t tests_size = sizeof(tests) / sizeof(*tests);
   lexer_t *l = lexer_new(input);
 
   for (int i = 0; i < tests_size; i++) {
     token_t *tok = lexer_next_token(l);
     TokenType expected_type = tests[i].expected_type;
-    char message[50];
 
     char *expected_type_str = token_to_str(expected_type);
     char *actual_type_str = token_to_str(tok->type);
-    sprintf(message, "Expected type: %s, Got: %s\n", expected_type_str,
-            actual_type_str);
-    assert((tok->type == expected_type) && message);
+    char *message = NULL;
+    asprintf(&message, "Expected type: %s, Got: %s\n", expected_type_str,
+             actual_type_str);
+    assert_fail(tok->type == expected_type, &message);
     free(expected_type_str);
     free(actual_type_str);
 
-    sprintf(message, "Expected Literal: %s, Got: %s\n",
-            tests[i].expected_literal, tok->literal);
-    assert((strcmp(tok->literal, tests[i].expected_literal) == 0) && message);
+    asprintf(&message, "Expected Literal: %s, Got: %s\n",
+             tests[i].expected_literal, tok->literal);
+    assert_fail(strcmp(tok->literal, tests[i].expected_literal) == 0, &message);
 
     token_destroy(&tok);
   }

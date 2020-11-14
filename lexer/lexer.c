@@ -22,7 +22,7 @@ TOKEN lexer_lookup_ident(lexer_t *l, char *ident) {
    */
   assert(ident);
   TOKEN tok = keywords_get(l->keywords, ident);
-  return tok != ILLEGAL ? tok : IDENT;
+  return tok != ILLEGAL_TOKEN ? tok : IDENT_TOKEN;
 }
 
 void lexer_skip_whitespace(lexer_t *l) {
@@ -119,63 +119,63 @@ token_t *lexer_next_token(lexer_t *l) {
   case '=':
     if (lexer_peek_char(l) == '=') {
       tok = malloc(sizeof(token_t));
-      tok->type = EQ;
+      tok->type = EQ_TOKEN;
       tok->literal = strdup("==");
       lexer_read_char(l);
     } else {
-      tok = token_new(ASSIGN, l->ch);
+      tok = token_new(ASSIGN_TOKEN, l->ch);
     }
     break;
   case '(':
-    tok = token_new(LPAREN, l->ch);
+    tok = token_new(LPAREN_TOKEN, l->ch);
     break;
   case ')':
-    tok = token_new(RPAREN, l->ch);
+    tok = token_new(RPAREN_TOKEN, l->ch);
     break;
   case '+':
-    tok = token_new(PLUS, l->ch);
+    tok = token_new(PLUS_TOKEN, l->ch);
     break;
   case '-':
-    tok = token_new(MINUS, l->ch);
+    tok = token_new(MINUS_TOKEN, l->ch);
     break;
   case '!':
     if (lexer_peek_char(l) == '=') {
       tok = malloc(sizeof(token_t));
-      tok->type = NOT_EQ;
+      tok->type = NOT_EQ_TOKEN;
       tok->literal = strdup("!=");
       lexer_read_char(l);
     } else {
-      tok = token_new(BANG, l->ch);
+      tok = token_new(BANG_TOKEN, l->ch);
     }
     break;
   case '/':
-    tok = token_new(SLASH, l->ch);
+    tok = token_new(SLASH_TOKEN, l->ch);
     break;
   case '*':
-    tok = token_new(ASTERISK, l->ch);
+    tok = token_new(ASTERISK_TOKEN, l->ch);
     break;
   case '<':
-    tok = token_new(LT, l->ch);
+    tok = token_new(LT_TOKEN, l->ch);
     break;
   case '>':
-    tok = token_new(GT, l->ch);
+    tok = token_new(GT_TOKEN, l->ch);
     break;
   case ',':
-    tok = token_new(COMMA, l->ch);
+    tok = token_new(COMMA_TOKEN, l->ch);
     break;
   case ';':
-    tok = token_new(SEMICOLON, l->ch);
+    tok = token_new(SEMICOLON_TOKEN, l->ch);
     break;
   case '{':
-    tok = token_new(LBRACE, l->ch);
+    tok = token_new(LBRACE_TOKEN, l->ch);
     break;
   case '}':
-    tok = token_new(RBRACE, l->ch);
+    tok = token_new(RBRACE_TOKEN, l->ch);
     break;
   case 0:
     tok = malloc(sizeof(token_t));
     tok->literal = strdup("");
-    tok->type = EF;
+    tok->type = EOF_TOKEN;
     break;
   default:
     if (is_letter(l->ch)) {
@@ -190,7 +190,7 @@ token_t *lexer_next_token(lexer_t *l) {
     } else if (is_digit(l->ch)) {
       tok = malloc(sizeof(token_t));
       tok->literal = lexer_read_number(l);
-      tok->type = INT;
+      tok->type = INT_TOKEN;
       /*
        * we call `lexer_read_char` in `lexer_read_identifier` so early
        * exit is required here.
@@ -200,7 +200,7 @@ token_t *lexer_next_token(lexer_t *l) {
       tok = malloc(sizeof(token_t));
       tok->literal = malloc(sizeof(char));
       tok->literal[0] = '\0';
-      tok->type = ILLEGAL;
+      tok->type = ILLEGAL_TOKEN;
     }
   }
   lexer_read_char(l);

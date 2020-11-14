@@ -70,10 +70,15 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   case INT_EXP:
     exp->expression.integer = (integer_t *)expression;
     break;
+  case BOOLEAN_EXP:
+    exp->expression.boolean = (boolean_t *)expression;
+    break;
   case PREFIX_EXP:
     exp->expression.prefix = (prefix_t *)expression;
+    break;
   case INFIX_EXP:
     exp->expression.infix = (infix_t *)expression;
+    break;
   default:
     assert("Invalid expression");
   }
@@ -90,6 +95,9 @@ void expression_destroy(expression_t **e_p) {
       break;
     case INT_EXP:
       integer_destroy(&expression->expression.integer);
+      break;
+    case BOOLEAN_EXP:
+      boolean_destroy(&expression->expression.boolean);
       break;
     case PREFIX_EXP:
       prefix_destroy(&expression->expression.prefix);
@@ -112,6 +120,8 @@ char *expression_to_string(expression_t *expression) {
   switch (expression->type) {
   case INT_EXP:
     return integer_to_string(expression->expression.integer);
+  case BOOLEAN_EXP:
+    return boolean_to_string(expression->expression.boolean);
   case IDENT_EXP:
     return identifier_to_string(expression->expression.identifier);
   case PREFIX_EXP:
@@ -187,6 +197,28 @@ char *integer_to_string(integer_t *integer) {
   char *str = NULL;
   asprintf(&str, "%" PRId32, integer->value);
   return str;
+}
+
+boolean_t *boolean_new(token_t *token) {
+  assert(token);
+  boolean_t *boolean = malloc(sizeof(boolean_t));
+  boolean->token = token;
+  boolean->value = token->type == TRUE_TOKEN;
+}
+
+void boolean_destroy(boolean_t **b_p) {
+  assert(b_p);
+  if (*b_p) {
+    boolean_t *boolean = *b_p;
+    token_destroy(&boolean->token);
+    free(boolean);
+    *b_p = NULL;
+  }
+}
+
+char *boolean_to_string(boolean_t *b) {
+  assert(b);
+  return strdup(b->token->type == TRUE_TOKEN ? "true" : "false" );
 }
 
 prefix_t *prefix_new(token_t *operator, expression_t * operand) {

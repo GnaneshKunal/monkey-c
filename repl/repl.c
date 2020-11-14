@@ -16,7 +16,7 @@ void start(FILE *in, FILE *out) {
     while (true) {
       tok = lexer_next_token(l);
       assert(tok);
-      if (tok->type == EF) {
+      if (tok->type == EOF_TOKEN) {
         token_destroy(&tok);
         break;
       }

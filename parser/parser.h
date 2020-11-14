@@ -56,6 +56,8 @@ expression_t *parser_parse_identifier(parser_t *parser, token_t *token,
                                       PRECEDENCE precedence);
 expression_t *parser_parse_integer(parser_t *parser, token_t *token,
                                    PRECEDENCE precedence);
+expression_t *parser_parse_boolean(parser_t *parser, token_t *token,
+                                   PRECEDENCE precedence);
 
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence);

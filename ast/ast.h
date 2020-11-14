@@ -10,6 +10,7 @@ typedef struct _statement_t statement_t;
 typedef enum {
   IDENT_EXP,
   INT_EXP,
+  BOOLEAN_EXP,
   PREFIX_EXP,
   INFIX_EXP,
 } EXPRESSION_TYPE;
@@ -31,6 +32,15 @@ typedef struct _integer_t {
 integer_t *integer_new(token_t *token);
 void integer_destroy(integer_t **i_p);
 char *integer_to_string(integer_t *integer);
+
+typedef struct _boolean_t {
+  token_t *token;
+  bool value;
+} boolean_t;
+
+boolean_t *boolean_new(token_t *token);
+void boolean_destroy(boolean_t **b_p);
+char *boolean_to_string(boolean_t *boolean);
 
 typedef struct _prefix_t {
   token_t *operator;
@@ -59,6 +69,7 @@ struct _expression_t {
     /* expressions */
     identifier_t *identifier;
     integer_t *integer;
+    boolean_t *boolean;
     prefix_t *prefix;
     infix_t *infix;
   } expression;
