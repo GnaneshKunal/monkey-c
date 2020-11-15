@@ -135,7 +135,7 @@ typedef struct _program_t {
   size_t len;
 } program_t;
 
-program_t *program_new();
+program_t *program_new(void);
 void program_destroy(program_t **p_p);
 void program_append_statement(program_t *program, statement_t *statement);
 char *program_to_string(program_t *program);

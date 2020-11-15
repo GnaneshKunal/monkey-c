@@ -185,7 +185,7 @@ void TestIdentifierExpressions() {
   assert((program != NULL) && "parse_program returned NULL");
 
   char *err_msg = NULL;
-  asprintf(&err_msg, "program has not enough statements. got=%d", program->len);
+  asprintf(&err_msg, "program has not enough statements. got=%lu", program->len);
   assert_fail(program->len == 1, &err_msg);
 
   statement_t *statement = program->statements[0];
@@ -230,7 +230,7 @@ void TestIntegerLiteralExpression(void) {
   assert((program != NULL) && "parse_program returned NULL");
 
   char *err_msg = NULL;
-  asprintf(&err_msg, "program has not enough statements. got=%d", program->len);
+  asprintf(&err_msg, "program has not enough statements. got=%ld", program->len);
   assert_fail(program->len == 1, &err_msg);
 
   statement_t *statement = program->statements[0];
@@ -279,7 +279,7 @@ void TestParsingPrefixExpression(void) {
 
     char *err_msg = NULL;
     asprintf(&err_msg,
-             "program.statements does not contain %d statements. got=%d\n", 1,
+             "program.statements does not contain %d statements. got=%ld\n", 1,
              program->len);
     assert_fail(program->len == 1, &err_msg);
 
@@ -340,7 +340,7 @@ void TestParsingInfixExpressions(void) {
 
     char *err_msg = NULL;
     asprintf(&err_msg,
-             "program.statements does not contain %d statements. got=%d\n", 1,
+             "program.statements does not contain %d statements. got=%ld\n", 1,
              program->len);
     assert_fail(program->len == 1, &err_msg);
 

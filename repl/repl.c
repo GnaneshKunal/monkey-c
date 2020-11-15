@@ -6,7 +6,7 @@ void start(FILE *in, FILE *out) {
   size_t len = 0;
 
   while (true) {
-    printf(PROMPT);
+    printf("%s", PROMPT);
     getline(&line, &len, in);
     if (line == NULL || strlen(line) == 0) {
       return;

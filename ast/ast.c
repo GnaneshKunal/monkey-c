@@ -204,6 +204,7 @@ boolean_t *boolean_new(token_t *token) {
   boolean_t *boolean = malloc(sizeof(boolean_t));
   boolean->token = token;
   boolean->value = token->type == TRUE_TOKEN;
+  return boolean;
 }
 
 void boolean_destroy(boolean_t **b_p) {
@@ -388,7 +389,7 @@ expression_statement_to_string(expression_statement_t *expression_statement) {
   return expression_to_string(expression_statement->expression);
 }
 
-program_t *program_new() {
+program_t *program_new(void) {
   program_t *p = malloc(sizeof(program_t));
   p->statements = NULL;
   p->len = 0;
