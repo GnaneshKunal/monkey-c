@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "../token/token.h"
-#include "../utils/utils.h"
+#include "token.h"
+#include "utils.h"
 
 typedef struct _lexer_t lexer_t;
 

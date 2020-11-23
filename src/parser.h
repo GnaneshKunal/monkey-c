@@ -1,10 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../ast/ast.h"
-#include "../lexer/lexer.h"
-#include "../token/token.h"
-#include "../utils/utils.h"
+#include "ast.h"
+#include "lexer.h"
+#include "token.h"
+#include "utils.h"
 
 typedef enum {
   LOWEST_PRECEDENCE,

@@ -1,9 +1,9 @@
 #ifndef REPL_H
 #define REPL_H
 
-#include "../lexer/lexer.h"
-#include "../token/token.h"
-#include "../utils/utils.h"
+#include "lexer.h"
+#include "token.h"
+#include "utils.h"
 
 const char *PROMPT = ">> ";
 

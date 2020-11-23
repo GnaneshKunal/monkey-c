@@ -1,8 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
-#include "../token/token.h"
-#include "../utils/utils.h"
+#include "token.h"
+#include "utils.h"
 
 typedef struct _expression_t expression_t;
 typedef struct _statement_t statement_t;

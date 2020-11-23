@@ -1,7 +1,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include "../utils/utils.h"
+#include "utils.h"
 
 #define KEYWORDS_SIZE 50
 

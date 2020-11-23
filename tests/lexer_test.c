@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "../src/lexer.h"
 
 void TestNextToken(void) {
 

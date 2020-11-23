@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "../src/parser.h"
 
 bool test_let_statement(statement_t *s, char *name) {
   if (s->type != LET_STATEMENT) {
