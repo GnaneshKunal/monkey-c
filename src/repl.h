@@ -5,7 +5,7 @@
 #include "token.h"
 #include "utils.h"
 
-const char *PROMPT = ">> ";
+#define PROMPT ">> "
 
 void start(FILE *in, FILE *out);
 
