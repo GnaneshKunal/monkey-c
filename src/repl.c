@@ -20,9 +20,8 @@ void start(FILE *in, FILE *out) {
         token_destroy(&tok);
         break;
       }
-      char *tok_type = token_to_str(tok->type);
+      const char *tok_type = token_to_str(tok->type);
       printf("{type: %s, literal: %s}\n", tok_type, tok->literal);
-      free(tok_type);
       token_destroy(&tok);
     }
     lexer_destroy(&l);

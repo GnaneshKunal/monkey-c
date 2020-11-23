@@ -119,12 +119,10 @@ char **parser_get_errors(parser_t *parser, size_t *error_len) {
 
 void parser_peek_error(parser_t *parser, TOKEN token_type) {
   char error[100];
-  char *expected_token_str = token_to_str(token_type);
-  char *actual_token_str = token_to_str(parser->peek_token->type);
+  const char *expected_token_str = token_to_str(token_type);
+  const char *actual_token_str = token_to_str(parser->peek_token->type);
   sprintf(error, "expected next token to be %s, got %s instead",
           expected_token_str, actual_token_str);
-  free(expected_token_str);
-  free(actual_token_str);
   parser_append_error(parser, error);
 }
 

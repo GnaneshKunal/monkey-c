@@ -29,62 +29,62 @@ void keywords_destroy(TOKEN **t_p) {
   }
 }
 
-char *token_to_str(TokenType t) {
+const char *token_to_str(TokenType t) {
   switch (t) {
   case ILLEGAL_TOKEN:
-    return strdup("ILLEGAL_TOKEN");
+    return "ILLEGAL_TOKEN";
   case EOF_TOKEN:
-    return strdup("EF_TOKEN");
+    return "EF_TOKEN";
   case IDENT_TOKEN:
-    return strdup("IDENT_TOKEN");
+    return "IDENT_TOKEN";
   case INT_TOKEN:
-    return strdup("INT_TOKEN");
+    return "INT_TOKEN";
   case ASSIGN_TOKEN:
-    return strdup("ASSIGN_TOKEN");
+    return "ASSIGN_TOKEN";
   case PLUS_TOKEN:
-    return strdup("PLUS_TOKEN");
+    return "PLUS_TOKEN";
   case MINUS_TOKEN:
-    return strdup("MINUS_TOKEN");
+    return "MINUS_TOKEN";
   case BANG_TOKEN:
-    return strdup("BANG_TOKEN");
+    return "BANG_TOKEN";
   case ASTERISK_TOKEN:
-    return strdup("ASTERISK_TOKEN");
+    return "ASTERISK_TOKEN";
   case SLASH_TOKEN:
-    return strdup("SLASH_TOKEN");
+    return "SLASH_TOKEN";
   case LT_TOKEN:
-    return strdup("LT_TOKEN");
+    return "LT_TOKEN";
   case GT_TOKEN:
-    return strdup("GT_TOKEN");
+    return "GT_TOKEN";
   case EQ_TOKEN:
-    return strdup("EQ_TOKEN");
+    return "EQ_TOKEN";
   case NOT_EQ_TOKEN:
-    return strdup("NOT_EQ_TOKEN");
+    return "NOT_EQ_TOKEN";
   case COMMA_TOKEN:
-    return strdup("COMMA_TOKEN");
+    return "COMMA_TOKEN";
   case SEMICOLON_TOKEN:
-    return strdup("SEMICOLON_TOKEN");
+    return "SEMICOLON_TOKEN";
   case LPAREN_TOKEN:
-    return strdup("LPAREN_TOKEN");
+    return "LPAREN_TOKEN";
   case RPAREN_TOKEN:
-    return strdup("RPAREN_TOKEN");
+    return "RPAREN_TOKEN";
   case LBRACE_TOKEN:
-    return strdup("LBRACE_TOKEN");
+    return "LBRACE_TOKEN";
   case RBRACE_TOKEN:
-    return strdup("RBRACE_TOKEN");
+    return "RBRACE_TOKEN";
   case FUNCTION_TOKEN:
-    return strdup("FUNCTION_TOKEN");
+    return "FUNCTION_TOKEN";
   case LET_TOKEN:
-    return strdup("LET_TOKEN");
+    return "LET_TOKEN";
   case TRUE_TOKEN:
-    return strdup("TRUE_TOKEN");
+    return "TRUE_TOKEN";
   case FALSE_TOKEN:
-    return strdup("FALSE_TOKEN");
+    return "FALSE_TOKEN";
   case IF_TOKEN:
-    return strdup("IF_TOKEN");
+    return "IF_TOKEN";
   case ELSE_TOKEN:
-    return strdup("ELSE_TOKEN");
+    return "ELSE_TOKEN";
   case RETURN_TOKEN:
-    return strdup("RETURN_TOKEN");
+    return "RETURN_TOKEN";
   }
 
   return NULL;

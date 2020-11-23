@@ -54,7 +54,7 @@ struct _token_t {
 
 typedef struct _token_t token_t;
 
-char *token_to_str(TokenType t);
+const char *token_to_str(TokenType t);
 token_t *token_new(TokenType type, char ch);
 void token_destroy(token_t **tok_p);
 

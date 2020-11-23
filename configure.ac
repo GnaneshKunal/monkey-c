@@ -18,6 +18,8 @@ AC_PROG_LIBTOOL
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lbsd':
 AC_CHECK_LIB([bsd], [main])
+
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
 AM_PROG_CC_C_O
 
 # Checks for header files.
@@ -37,5 +39,6 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gethostname strdup])
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 tests/Makefile])
 AC_OUTPUT
