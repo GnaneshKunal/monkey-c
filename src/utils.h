@@ -56,4 +56,8 @@ static void assert_fail(bool value, char **err_msg_p) {
   assert(value);
 }
 
+static const char *get_bool_literal(bool value) {
+  return value ? "true" : "false";
+}
+
 #endif

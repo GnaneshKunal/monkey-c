@@ -13,7 +13,7 @@ void _test_expression_type(expression_t *expression, EXPRESSION_TYPE et) {
                 expression_type_to_str(expression->type));
 }
 
-void _test_str_literal(char *actual_literal, char *expected_literal) {
+void _test_str_literal(char *actual_literal, const char *expected_literal) {
   ck_assert_msg(strcmp(expected_literal, actual_literal) == 0,
                 "Expected=%s, Got=%s\n", expected_literal, actual_literal);
 }
@@ -45,6 +45,30 @@ void _test_integer_literal(expression_t *expression, int32_t value) {
   char int_str[20];
   sprintf(int_str, "%" PRId32, value);
   _test_str_literal(integer->token->literal, int_str);
+}
+
+void _test_boolean_literal(expression_t *expression, bool value) {
+  _test_expression_type(expression, BOOLEAN_EXP);
+
+  boolean_t *boolean = expression->expression.boolean;
+  ck_assert_msg(boolean->value == value, "Expected=%s, Got=%s",
+                get_bool_literal(value), get_bool_literal(boolean->value));
+
+  _test_str_literal(boolean->token->literal, get_bool_literal(value));
+}
+
+void _test_literal(EXPRESSION_TYPE et, expression_t *expression,
+                   uintptr_t *value) {
+  switch (et) {
+  case INT_EXP:
+    _test_integer_literal(expression, (int32_t)value);
+    return;
+  case BOOLEAN_EXP:
+    _test_boolean_literal(expression, (bool)value);
+    return;
+  default:
+    ck_abort_msg("Unknown literal type (%d)", et);
+  }
 }
 
 bool check_parser_errors(parser_t *parser) {
@@ -226,19 +250,27 @@ START_TEST(test_integer_literal_expression) {
 }
 END_TEST
 
-typedef struct _prefix_results_t {
+typedef struct _prefix_result_t {
   char *input;
   char *operator;
-  int32_t integer_value;
-} prefix_results_t;
+  EXPRESSION_TYPE et;
+  union {
+    int32_t integer_value;
+    bool boolean_value;
+  };
+} prefix_result_t;
 
-prefix_results_t prefix_tests[] = {
-    {"!5;", "!", 5},
-    {"-15;", "-", 15},
-};
+prefix_result_t prefix_tests[] = {
+    {"!5;", "!", INT_EXP, {5}},
+    {"-15;", "-", INT_EXP, {15}},
+    {"!true;", "!", BOOLEAN_EXP, {.boolean_value = true}},
+    {"!false;", "!", BOOLEAN_EXP, {.boolean_value = false}}};
 
 START_TEST(test_parsing_prefix_expression_loop) {
-  lexer_t *lexer = lexer_new(prefix_tests[_i].input);
+
+  prefix_result_t test = prefix_tests[_i];
+
+  lexer_t *lexer = lexer_new(test.input);
   parser_t *parser = parser_new(lexer);
   program_t *program = parser_parse_program(parser);
 
@@ -258,9 +290,11 @@ START_TEST(test_parsing_prefix_expression_loop) {
   _test_expression_type(expression, PREFIX_EXP);
 
   prefix_t *prefix = expression->expression.prefix;
-  _test_str_literal(prefix->operator->literal, prefix_tests[_i].operator);
+  _test_str_literal(prefix->operator->literal, test.operator);
 
-  _test_integer_literal(prefix->operand, prefix_tests[_i].integer_value);
+  _test_literal(test.et, prefix->operand,
+                (uintptr_t *)(test.et == INT_EXP ? test.integer_value
+                                                 : test.boolean_value));
 
   program_destroy(&program);
   parser_destroy(&parser);
@@ -345,6 +379,49 @@ START_TEST(test_parsing_operator_precedence_loop) {
   program_destroy(&program);
   parser_destroy(&parser);
 }
+END_TEST
+
+typedef struct _boolean_infix_results_t {
+  char *input;
+  bool left_value;
+  char *operator;
+  bool right_value;
+} boolean_infix_results_t;
+
+boolean_infix_results_t boolean_infix_tests[] = {
+    {"true == true", true, "==", true},
+    {"true != false", true, "!=", false},
+    {"false == false", false, "==", false},
+};
+
+START_TEST(test_parsing_boolean_infix_expression_loop) {
+  lexer_t *lexer = lexer_new(boolean_infix_tests[_i].input);
+  parser_t *parser = parser_new(lexer);
+  program_t *program = parser_parse_program(parser);
+
+  ck_assert_msg(program->len == 1,
+                "program.statements does not contain %d statements. Got=%ld\n",
+                1, program->len);
+
+  statement_t *statement = program->statements[0];
+  _test_statement_type(statement, EXPRESSION_STATEMENT);
+
+  expression_statement_t *expression_statement =
+      statement->statement.expression_statement;
+  expression_t *expression = expression_statement->expression;
+  _test_expression_type(expression, INFIX_EXP);
+
+  infix_t *infix = expression->expression.infix;
+  _test_str_literal(infix->operator->literal, boolean_infix_tests[_i].operator);
+
+  _test_boolean_literal(infix->left, boolean_infix_tests[_i].left_value);
+
+  _test_boolean_literal(infix->right, boolean_infix_tests[_i].right_value);
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+END_TEST
 
 Suite *parser_suite(void) {
   Suite *s;
@@ -369,6 +446,11 @@ Suite *parser_suite(void) {
   size_t operator_tests_len = sizeof(operator_tests) / sizeof(*operator_tests);
   tcase_add_loop_test(tc_core, test_parsing_operator_precedence_loop, 0,
                       operator_tests_len);
+
+  size_t boolean_infix_tests_len =
+      sizeof(boolean_infix_tests) / sizeof(*boolean_infix_tests);
+  tcase_add_loop_test(tc_core, test_parsing_boolean_infix_expression_loop, 0,
+                      boolean_infix_tests_len);
 
   suite_add_tcase(s, tc_core);
 
