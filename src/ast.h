@@ -140,6 +140,6 @@ void program_destroy(program_t **p_p);
 void program_append_statement(program_t *program, statement_t *statement);
 char *program_to_string(program_t *program);
 
-char *get_token_literal(token_t *tok);
-
+const char *expression_type_to_str(EXPRESSION_TYPE et);
+const char *statement_type_to_str(STATEMENT_TYPE st);
 #endif

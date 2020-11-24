@@ -1,7 +1,5 @@
 #include "ast.h"
 
-char *get_token_literal(token_t *tok) { return strdup(tok->literal); }
-
 statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
   statement_t *s = malloc(sizeof(statement_t));
 
@@ -460,4 +458,36 @@ char *program_to_string(program_t *program) {
   }
 
   return program_str;
+}
+
+const char *expression_type_to_str(EXPRESSION_TYPE et) {
+  switch (et) {
+  case IDENT_EXP:
+    return "IDENT_EXP";
+  case INT_EXP:
+    return "INT_EXP";
+  case BOOLEAN_EXP:
+    return "BOOLEAN_EXP";
+  case PREFIX_EXP:
+    return "PREFIX_EXP";
+  case INFIX_EXP:
+    return "INFIX_EXP";
+  default:
+    assert("Unknown expression");
+    return NULL;
+  }
+}
+
+const char *statement_type_to_str(STATEMENT_TYPE st) {
+  switch (st) {
+  case LET_STATEMENT:
+    return "LET_STATEMENT";
+  case RETURN_STATEMENT:
+    return "RETURN_STATEMENT";
+  case EXPRESSION_STATEMENT:
+    return "EXPRESSION_STATEMENT";
+  default:
+    assert("Unknown statement");
+    return NULL;
+  }
 }

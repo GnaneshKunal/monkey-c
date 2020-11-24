@@ -1,7 +1,7 @@
 #include "../src/lexer.h"
 #include <check.h>
 
-START_TEST(test_next_token_loop) {
+START_TEST(test_next_token) {
 
   char *input = "let five = 5; \
 let ten = 10;                    \
@@ -81,7 +81,7 @@ Suite *lexer_suite(void) {
   s = suite_create("Lexer");
   tc_core = tcase_create("Core");
 
-  tcase_add_test(tc_core, test_next_token_loop);
+  tcase_add_test(tc_core, test_next_token);
 
   suite_add_tcase(s, tc_core);
 
