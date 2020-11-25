@@ -20,6 +20,7 @@ parser_t *parser_new(lexer_t *l) {
   p->prefix_parselets[MINUS_TOKEN] = parser_parse_prefix;
   p->prefix_parselets[TRUE_TOKEN] = parser_parse_boolean;
   p->prefix_parselets[FALSE_TOKEN] = parser_parse_boolean;
+  p->prefix_parselets[LPAREN_TOKEN] = parser_parse_grouped_expression;
 
   p->infix_parselets = calloc(RETURN_TOKEN + 1, sizeof(infix_parse_fn));
   assert(p->infix_parselets);
@@ -290,6 +291,25 @@ expression_t *parser_parse_boolean(parser_t *parser, token_t *token,
   assert(token);
   boolean_t *boolean = boolean_new(token);
   expression_t *expression = expression_new(BOOLEAN_EXP, boolean);
+  return expression;
+}
+
+expression_t *parser_parse_grouped_expression(parser_t *parser, token_t *token,
+                                              PRECEDENCE precedence) {
+  assert(token);
+  /* Destroy LPAREN TOKEN */
+  token_destroy(&parser->cur_token);
+  parser_next_token(parser);
+
+  expression_t *expression = parser_parse_expression(parser, LOWEST_PRECEDENCE);
+
+  if (!parser_expect_peek(parser, RPAREN_TOKEN)) {
+    return NULL;
+  }
+
+  /* Destroy RPAREN token */
+  token_destroy(&parser->cur_token);
+
   return expression;
 }
 
