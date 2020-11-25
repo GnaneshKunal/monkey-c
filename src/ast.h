@@ -72,7 +72,7 @@ struct _expression_t {
     boolean_t *boolean;
     prefix_t *prefix;
     infix_t *infix;
-  } expression;
+  };
 };
 
 expression_t *expression_new(EXPRESSION_TYPE type, void *expression);
@@ -124,7 +124,7 @@ struct _statement_t {
     let_statement_t *let_statement;
     return_statement_t *return_statement;
     expression_statement_t *expression_statement;
-  } statement;
+  };
 };
 statement_t *statement_new(void *statement, STATEMENT_TYPE st);
 void statement_destroy(statement_t **s_p, STATEMENT_TYPE st);

@@ -22,7 +22,7 @@ void _test_let_statement(statement_t *s, char *name) {
 
   _test_statement_type(s, LET_STATEMENT);
 
-  let_statement_t *let = (let_statement_t *)s->statement.let_statement;
+  let_statement_t *let = (let_statement_t *)s->let_statement;
   ck_assert_msg(let != NULL, "let statement is NULL");
 
   _test_str_literal(let->token->literal, "let");
@@ -37,7 +37,7 @@ void _test_let_statement(statement_t *s, char *name) {
 void _test_integer_literal(expression_t *expression, int32_t value) {
   _test_expression_type(expression, INT_EXP);
 
-  integer_t *integer = expression->expression.integer;
+  integer_t *integer = expression->integer;
   ck_assert_msg(integer->value == value,
                 "int.Value not %" PRId32 ", Got=%" PRId32, value,
                 integer->value);
@@ -50,7 +50,7 @@ void _test_integer_literal(expression_t *expression, int32_t value) {
 void _test_boolean_literal(expression_t *expression, bool value) {
   _test_expression_type(expression, BOOLEAN_EXP);
 
-  boolean_t *boolean = expression->expression.boolean;
+  boolean_t *boolean = expression->boolean;
   ck_assert_msg(boolean->value == value, "Expected=%s, Got=%s",
                 get_bool_literal(value), get_bool_literal(boolean->value));
 
@@ -168,8 +168,7 @@ return 5;                                             \
 
     _test_statement_type(statement, RETURN_STATEMENT);
 
-    return_statement_t *return_statement =
-        statement->statement.return_statement;
+    return_statement_t *return_statement = statement->return_statement;
 
     _test_str_literal(return_statement->token->literal, "return");
   }
@@ -202,12 +201,12 @@ START_TEST(test_identifier_expressions) {
   _test_statement_type(statement, EXPRESSION_STATEMENT);
 
   expression_statement_t *expression_statement =
-      statement->statement.expression_statement;
+      statement->expression_statement;
   expression_t *expression = expression_statement->expression;
 
   _test_expression_type(expression, IDENT_EXP);
 
-  identifier_t *identifier = expression->expression.identifier;
+  identifier_t *identifier = expression->identifier;
   _test_str_literal(identifier->value, "foobar");
 
   _test_str_literal(identifier->token->literal, "foobar");
@@ -242,7 +241,7 @@ START_TEST(test_integer_literal_expression) {
   _test_statement_type(statement, EXPRESSION_STATEMENT);
 
   expression_statement_t *expression_statement =
-      statement->statement.expression_statement;
+      statement->expression_statement;
   _test_integer_literal(expression_statement->expression, 5);
 
   program_destroy(&program);
@@ -285,11 +284,11 @@ START_TEST(test_parsing_prefix_expression_loop) {
   _test_statement_type(statement, EXPRESSION_STATEMENT);
 
   expression_statement_t *expression_statement =
-      statement->statement.expression_statement;
+      statement->expression_statement;
   expression_t *expression = expression_statement->expression;
   _test_expression_type(expression, PREFIX_EXP);
 
-  prefix_t *prefix = expression->expression.prefix;
+  prefix_t *prefix = expression->prefix;
   _test_str_literal(prefix->operator->literal, test.operator);
 
   _test_literal(test.et, prefix->operand,
@@ -327,11 +326,11 @@ START_TEST(test_parsing_infix_expression_loop) {
   _test_statement_type(statement, EXPRESSION_STATEMENT);
 
   expression_statement_t *expression_statement =
-      statement->statement.expression_statement;
+      statement->expression_statement;
   expression_t *expression = expression_statement->expression;
   _test_expression_type(expression, INFIX_EXP);
 
-  infix_t *infix = expression->expression.infix;
+  infix_t *infix = expression->infix;
   _test_str_literal(infix->operator->literal, infix_tests[_i].operator);
 
   _test_integer_literal(infix->left, infix_tests[_i].left_value);
@@ -412,11 +411,11 @@ START_TEST(test_parsing_boolean_infix_expression_loop) {
   _test_statement_type(statement, EXPRESSION_STATEMENT);
 
   expression_statement_t *expression_statement =
-      statement->statement.expression_statement;
+      statement->expression_statement;
   expression_t *expression = expression_statement->expression;
   _test_expression_type(expression, INFIX_EXP);
 
-  infix_t *infix = expression->expression.infix;
+  infix_t *infix = expression->infix;
   _test_str_literal(infix->operator->literal, boolean_infix_tests[_i].operator);
 
   _test_boolean_literal(infix->left, boolean_infix_tests[_i].left_value);

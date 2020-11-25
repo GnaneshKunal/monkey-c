@@ -6,15 +6,15 @@ statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
   switch (st) {
   case LET_STATEMENT:
     s->type = LET_STATEMENT;
-    s->statement.let_statement = (let_statement_t *)statement;
+    s->let_statement = (let_statement_t *)statement;
     return s;
   case RETURN_STATEMENT:
     s->type = RETURN_STATEMENT;
-    s->statement.return_statement = (return_statement_t *)statement;
+    s->return_statement = (return_statement_t *)statement;
     return s;
   case EXPRESSION_STATEMENT:
     s->type = EXPRESSION_STATEMENT;
-    s->statement.expression_statement = (expression_statement_t *)statement;
+    s->expression_statement = (expression_statement_t *)statement;
     return s;
   default:
     return NULL;
@@ -27,12 +27,12 @@ void statement_destroy(statement_t **s_p, STATEMENT_TYPE st) {
     statement_t *statement = *s_p;
     switch (statement->type) {
     case LET_STATEMENT:
-      let_statement_destroy(&statement->statement.let_statement);
+      let_statement_destroy(&statement->let_statement);
       break;
     case RETURN_STATEMENT:
-      return_statement_destroy(&statement->statement.return_statement);
+      return_statement_destroy(&statement->return_statement);
     case EXPRESSION_STATEMENT:
-      expression_statement_destroy(&statement->statement.expression_statement);
+      expression_statement_destroy(&statement->expression_statement);
     }
     free(statement);
     *s_p = NULL;
@@ -43,14 +43,13 @@ char *statement_to_string(statement_t *statement) {
   assert(statement);
   switch (statement->type) {
   case LET_STATEMENT:
-    return let_statement_to_string(
-        (let_statement_t *)statement->statement.let_statement);
+    return let_statement_to_string((let_statement_t *)statement->let_statement);
   case RETURN_STATEMENT:
     return return_statement_to_string(
-        (return_statement_t *)statement->statement.return_statement);
+        (return_statement_t *)statement->return_statement);
   case EXPRESSION_STATEMENT:
     return expression_statement_to_string(
-        (expression_statement_t *)statement->statement.expression_statement);
+        (expression_statement_t *)statement->expression_statement);
   default:
     return NULL;
   }
@@ -63,19 +62,19 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   exp->type = e_type;
   switch (e_type) {
   case IDENT_EXP:
-    exp->expression.identifier = (identifier_t *)expression;
+    exp->identifier = (identifier_t *)expression;
     break;
   case INT_EXP:
-    exp->expression.integer = (integer_t *)expression;
+    exp->integer = (integer_t *)expression;
     break;
   case BOOLEAN_EXP:
-    exp->expression.boolean = (boolean_t *)expression;
+    exp->boolean = (boolean_t *)expression;
     break;
   case PREFIX_EXP:
-    exp->expression.prefix = (prefix_t *)expression;
+    exp->prefix = (prefix_t *)expression;
     break;
   case INFIX_EXP:
-    exp->expression.infix = (infix_t *)expression;
+    exp->infix = (infix_t *)expression;
     break;
   default:
     assert("Invalid expression");
@@ -89,19 +88,19 @@ void expression_destroy(expression_t **e_p) {
     expression_t *expression = *e_p;
     switch (expression->type) {
     case IDENT_EXP:
-      identifier_destroy(&expression->expression.identifier);
+      identifier_destroy(&expression->identifier);
       break;
     case INT_EXP:
-      integer_destroy(&expression->expression.integer);
+      integer_destroy(&expression->integer);
       break;
     case BOOLEAN_EXP:
-      boolean_destroy(&expression->expression.boolean);
+      boolean_destroy(&expression->boolean);
       break;
     case PREFIX_EXP:
-      prefix_destroy(&expression->expression.prefix);
+      prefix_destroy(&expression->prefix);
       break;
     case INFIX_EXP:
-      infix_destroy(&expression->expression.infix);
+      infix_destroy(&expression->infix);
       break;
     default:
       assert("Invalid expression");
@@ -117,15 +116,15 @@ char *expression_to_string(expression_t *expression) {
   char *expression_str = NULL;
   switch (expression->type) {
   case INT_EXP:
-    return integer_to_string(expression->expression.integer);
+    return integer_to_string(expression->integer);
   case BOOLEAN_EXP:
-    return boolean_to_string(expression->expression.boolean);
+    return boolean_to_string(expression->boolean);
   case IDENT_EXP:
-    return identifier_to_string(expression->expression.identifier);
+    return identifier_to_string(expression->identifier);
   case PREFIX_EXP:
-    return prefix_to_string(expression->expression.prefix);
+    return prefix_to_string(expression->prefix);
   case INFIX_EXP:
-    return infix_to_string(expression->expression.infix);
+    return infix_to_string(expression->infix);
   default:
     puts("Error: Unknown expression");
     assert(false);
@@ -217,7 +216,7 @@ void boolean_destroy(boolean_t **b_p) {
 
 char *boolean_to_string(boolean_t *b) {
   assert(b);
-  return strdup(b->token->type == TRUE_TOKEN ? "true" : "false" );
+  return strdup(b->token->type == TRUE_TOKEN ? "true" : "false");
 }
 
 prefix_t *prefix_new(token_t *operator, expression_t * operand) {
