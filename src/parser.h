@@ -46,6 +46,7 @@ statement_t *parser_parse_statement(parser_t *p);
 let_statement_t *parser_parse_let_statement(parser_t *p);
 return_statement_t *parser_parse_return_statement(parser_t *p);
 expression_statement_t *parser_parse_expression_statement(parser_t *p);
+block_statement_t *parser_parse_block_statement(parser_t *parser);
 expression_t *parser_parse_expression(parser_t *p, PRECEDENCE precedence);
 
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type);
@@ -60,6 +61,8 @@ expression_t *parser_parse_boolean(parser_t *parser, token_t *token,
                                    PRECEDENCE precedence);
 expression_t *parser_parse_grouped_expression(parser_t *parser, token_t *token,
                                               PRECEDENCE precedence);
+expression_t *parser_parse_if_expression(parser_t *parser, token_t *token,
+                                         PRECEDENCE precedence);
 
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence);

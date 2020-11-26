@@ -16,12 +16,15 @@ statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
     s->type = EXPRESSION_STATEMENT;
     s->expression_statement = (expression_statement_t *)statement;
     return s;
+  case BLOCK_STATEMENT:
+    s->type = BLOCK_STATEMENT;
+    s->expression_statement = (block_statement_t *)statement;
   default:
     return NULL;
   }
 }
 
-void statement_destroy(statement_t **s_p, STATEMENT_TYPE st) {
+void statement_destroy(statement_t **s_p) {
   assert(s_p);
   if (*s_p) {
     statement_t *statement = *s_p;
@@ -33,6 +36,8 @@ void statement_destroy(statement_t **s_p, STATEMENT_TYPE st) {
       return_statement_destroy(&statement->return_statement);
     case EXPRESSION_STATEMENT:
       expression_statement_destroy(&statement->expression_statement);
+    case BLOCK_STATEMENT:
+      block_statement_destroy(&statement->block_statement);
     }
     free(statement);
     *s_p = NULL;
@@ -43,13 +48,13 @@ char *statement_to_string(statement_t *statement) {
   assert(statement);
   switch (statement->type) {
   case LET_STATEMENT:
-    return let_statement_to_string((let_statement_t *)statement->let_statement);
+    return let_statement_to_string(statement->let_statement);
   case RETURN_STATEMENT:
-    return return_statement_to_string(
-        (return_statement_t *)statement->return_statement);
+    return return_statement_to_string(statement->return_statement);
   case EXPRESSION_STATEMENT:
-    return expression_statement_to_string(
-        (expression_statement_t *)statement->expression_statement);
+    return expression_statement_to_string(statement->expression_statement);
+  case BLOCK_STATEMENT:
+    return block_statement_to_string(statement->block_statement);
   default:
     return NULL;
   }
@@ -75,6 +80,9 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
     break;
   case INFIX_EXP:
     exp->infix = (infix_t *)expression;
+    break;
+  case IF_EXP:
+    exp->if_exp = (if_exp_t *)expression;
     break;
   default:
     assert("Invalid expression");
@@ -102,6 +110,9 @@ void expression_destroy(expression_t **e_p) {
     case INFIX_EXP:
       infix_destroy(&expression->infix);
       break;
+    case IF_EXP:
+      if_exp_destroy(&expression->if_exp);
+      break;
     default:
       assert("Invalid expression");
     }
@@ -125,6 +136,8 @@ char *expression_to_string(expression_t *expression) {
     return prefix_to_string(expression->prefix);
   case INFIX_EXP:
     return infix_to_string(expression->infix);
+  case IF_EXP:
+    return if_exp_to_string(expression->if_exp);
   default:
     puts("Error: Unknown expression");
     assert(false);
@@ -285,6 +298,59 @@ char *infix_to_string(infix_t *infix) {
   return str;
 }
 
+if_exp_t *if_exp_new(token_t *token, expression_t *condition, block_statement_t *consequence, block_statement_t *alternative) {
+  assert(token);
+  assert(condition);
+  assert(consequence);
+  /* else part is optional */
+  /* assert(alternative); */
+  if_exp_t *if_exp = malloc(sizeof(if_exp_t));
+  if_exp->token = token;
+  if_exp->condition = condition;
+  if_exp->consequence = consequence;
+  if_exp->alternative = alternative;
+  return if_exp;
+}
+
+void if_exp_destroy(if_exp_t **i_p) {
+  assert(i_p);
+  if (*i_p) {
+    if_exp_t *if_exp = *i_p;
+    token_destroy(&if_exp->token);
+    expression_destroy(&if_exp->condition);
+    block_statement_destroy(&if_exp->consequence);
+    block_statement_destroy(&if_exp->alternative);
+    free(if_exp);
+    *i_p = NULL;
+  }
+}
+
+char *if_exp_to_string(if_exp_t *if_exp) {
+  assert(if_exp);
+  char *str = NULL;
+  char *condition_str = expression_to_string(if_exp->condition);
+  char *consequence_str = block_statement_to_string(if_exp->consequence);
+
+  asprintf(&str, "if %s %s", condition_str, consequence_str);
+  free(condition_str);
+  free(consequence_str);
+
+  char *final_str = NULL;
+
+  if (if_exp->alternative != NULL) {
+    char *alternative_str = block_statement_to_string(if_exp->alternative);
+    asprintf(&final_str, "%s else %s", str, alternative_str);
+    free(alternative_str);
+  }
+
+  if (final_str != NULL) {
+    free(str);
+    return final_str;
+  }
+
+  return str;
+}
+
 let_statement_t *let_statement_new(token_t *token, identifier_t *name,
                                    expression_t *value) {
   assert(token);
@@ -386,6 +452,54 @@ expression_statement_to_string(expression_statement_t *expression_statement) {
   return expression_to_string(expression_statement->expression);
 }
 
+block_statement_t *block_statement_new(token_t *token,
+                                       statement_t **statements,
+                                       size_t statements_len) {
+  assert(token);
+  assert(statements);
+  assert(statements_len > 0);
+  block_statement_t *block_statement = malloc(sizeof(block_statement_t));
+  block_statement->token = token;
+  block_statement->statements = statements;
+  block_statement->statements_len = statements_len;
+  return block_statement;
+}
+
+void block_statement_destroy(block_statement_t **b_p) {
+  assert(b_p);
+  if (*b_p) {
+    block_statement_t *block_statement = *b_p;
+    assert(block_statement);
+    token_destroy(&block_statement->token);
+    size_t statements_len = block_statement->statements_len;
+    for (int i = 0; i < statements_len; i++) {
+      statement_destroy(&block_statement->statements[i]);
+    }
+    free(block_statement->statements);
+    free(block_statement);
+    *b_p = NULL;
+  }
+}
+
+char *block_statement_to_string(block_statement_t *block_statement) {
+  assert(block_statement);
+  char *str = NULL;
+  asprintf(&str, "{");
+  for (int i = 0; i < block_statement->statements_len; i++) {
+    char *temp_str = NULL;
+    char *statement_str = statement_to_string(block_statement->statements[i]);
+    asprintf(&temp_str, "%s %s", str, statement_str);
+    free(statement_str);
+    free(str);
+    str = temp_str;
+  }
+  char *temp_str = NULL;
+  asprintf(&temp_str, "%s }", str);
+  free(str);
+  str = temp_str;
+  return str;
+}
+
 program_t *program_new(void) {
   program_t *p = malloc(sizeof(program_t));
   p->statements = NULL;
@@ -399,7 +513,7 @@ void program_destroy(program_t **p_p) {
     program_t *p = *p_p;
     assert(p);
     for (int i = 0; i < p->len; i++) {
-      statement_destroy(&p->statements[i], p->statements[i]->type);
+      statement_destroy(&p->statements[i]);
     }
     free(p->statements);
     free(p);

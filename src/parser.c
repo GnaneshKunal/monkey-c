@@ -21,6 +21,7 @@ parser_t *parser_new(lexer_t *l) {
   p->prefix_parselets[TRUE_TOKEN] = parser_parse_boolean;
   p->prefix_parselets[FALSE_TOKEN] = parser_parse_boolean;
   p->prefix_parselets[LPAREN_TOKEN] = parser_parse_grouped_expression;
+  p->prefix_parselets[IF_TOKEN] = parser_parse_if_expression;
 
   p->infix_parselets = calloc(RETURN_TOKEN + 1, sizeof(infix_parse_fn));
   assert(p->infix_parselets);
@@ -230,6 +231,46 @@ expression_statement_t *parser_parse_expression_statement(parser_t *parser) {
   return expression_statement;
 }
 
+block_statement_t *parser_parse_block_statement(parser_t *parser) {
+  assert(parser);
+  token_t *block_token = parser->cur_token;
+  statement_t **statements = NULL;
+  size_t statements_len = 0;
+  parser_next_token(parser);
+
+  while (!parser_cur_token_is(parser, RBRACE_TOKEN) && !parser_cur_token_is(parser, EOF_TOKEN)) {
+    statement_t *statement = parser_parse_statement(parser);
+    if (statement != NULL) {
+      if (statements == NULL) {
+        statements = malloc(sizeof(statement_t *));
+        statements[0] = statement;
+        statements_len += 1;
+      } else {
+        statements =
+          realloc(statements, sizeof(statement_t *) * (statements_len + 1));
+        if (statements == NULL) {
+          /*
+           * TODO: Better error handling needed
+           */
+          puts("Cannot allocate for statements");
+          exit(1);
+        }
+        /* program->statements = statements; */
+        statements[statements_len] = statement;
+        statements_len += 1;
+      }
+    }
+    parser_next_token(parser);
+  }
+
+  block_statement_t *block_statement = block_statement_new(block_token, statements, statements_len);
+  if (parser_cur_token_is(parser, RBRACE_TOKEN) || parser_cur_token_is(parser, EOF_TOKEN)) {
+    token_destroy(&parser->cur_token);
+    parser_next_token(parser);
+  }
+  return block_statement;
+}
+
 expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
   token_t *token = parser->cur_token;
   prefix_parse_fn prefix = parser->prefix_parselets[token->type];
@@ -259,6 +300,12 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
     }
 
     left_expression = infix(parser, token, precedence, left_expression);
+  }
+
+  /* If we have already reached EOF TOKEN, just destroy it and return */
+  if (parser->cur_token != NULL && parser_cur_token_is(parser, EOF_TOKEN)) {
+    token_destroy(&parser->cur_token);
+    return left_expression;
   }
 
   /* Should check for semicolon too? */
@@ -311,6 +358,38 @@ expression_t *parser_parse_grouped_expression(parser_t *parser, token_t *token,
   token_destroy(&parser->cur_token);
 
   return expression;
+}
+
+expression_t *parser_parse_if_expression(parser_t *parser, token_t *token,
+                                         PRECEDENCE precedence) {
+  assert(token);
+  token_t *if_token = token;
+
+  if (!parser_expect_peek(parser, LPAREN_TOKEN)) {
+    assert("Expected LPAREN");
+    return NULL;
+  }
+  /* Destroy LPAREN */
+  token_destroy(&parser->cur_token);
+  parser_next_token(parser);
+
+  expression_t *condition = parser_parse_expression(parser, LOWEST_PRECEDENCE);
+
+  if (!parser_expect_peek(parser, RPAREN_TOKEN)) {
+    assert("Expected RPAREN");
+    return NULL;
+  }
+  /* Destroy RPAREN */
+  token_destroy(&parser->cur_token);
+
+  if (!parser_expect_peek(parser, LBRACE_TOKEN)) {
+    assert("Expected LBRACE");
+    return NULL;
+  }
+
+  block_statement_t *consequence = parser_parse_block_statement(parser);
+  if_exp_t *if_exp = if_exp_new(if_token, condition, consequence, NULL);  
+  return expression_new(IF_EXP, if_exp);
 }
 
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,

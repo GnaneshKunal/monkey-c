@@ -7,12 +7,15 @@
 typedef struct _expression_t expression_t;
 typedef struct _statement_t statement_t;
 
+typedef struct _block_statement_t block_statement_t;
+
 typedef enum {
   IDENT_EXP,
   INT_EXP,
   BOOLEAN_EXP,
   PREFIX_EXP,
   INFIX_EXP,
+  IF_EXP,
 } EXPRESSION_TYPE;
 
 typedef struct _identifier_t {
@@ -62,6 +65,17 @@ infix_t *infix_new(token_t *operator, expression_t * left,
 void infix_destroy(infix_t **i_p);
 char *infix_to_string(infix_t *infix);
 
+typedef struct _if_exp_t {
+  token_t *token;               /* The 'if' token */
+  expression_t *condition;
+  block_statement_t *consequence;
+  block_statement_t *alternative;
+} if_exp_t;
+
+if_exp_t *if_exp_new(token_t *token, expression_t *condition, block_statement_t *consequence, block_statement_t *alternative);
+void if_exp_destroy(if_exp_t **i_p);
+char *if_exp_to_string(if_exp_t *if_exp);
+
 /* forward declaration at the top */
 struct _expression_t {
   EXPRESSION_TYPE type;
@@ -72,6 +86,7 @@ struct _expression_t {
     boolean_t *boolean;
     prefix_t *prefix;
     infix_t *infix;
+    if_exp_t *if_exp;
   };
 };
 
@@ -83,6 +98,7 @@ typedef enum {
   LET_STATEMENT,
   RETURN_STATEMENT,
   EXPRESSION_STATEMENT,
+  BLOCK_STATEMENT,
 } STATEMENT_TYPE;
 
 typedef struct _let_statement_t {
@@ -117,6 +133,18 @@ void expression_statement_destroy(expression_statement_t **e_p);
 char *
 expression_statement_to_string(expression_statement_t *expression_statement);
 
+struct _block_statement_t {
+  token_t *token;               /* the '{' token */
+  statement_t **statements;
+  size_t statements_len;
+};
+
+block_statement_t *block_statement_new(token_t *token,
+                                       statement_t **statements,
+                                       size_t statements_len);
+void block_statement_destroy(block_statement_t **b_p);
+char *block_statement_to_string(block_statement_t *block_statement);
+
 /* forward declaration at the top */
 struct _statement_t {
   STATEMENT_TYPE type;
@@ -124,10 +152,11 @@ struct _statement_t {
     let_statement_t *let_statement;
     return_statement_t *return_statement;
     expression_statement_t *expression_statement;
+    block_statement_t *block_statement;
   };
 };
 statement_t *statement_new(void *statement, STATEMENT_TYPE st);
-void statement_destroy(statement_t **s_p, STATEMENT_TYPE st);
+void statement_destroy(statement_t **s_p);
 char *statement_to_string(statement_t *statement);
 
 typedef struct _program_t {
