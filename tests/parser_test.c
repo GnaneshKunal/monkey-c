@@ -427,8 +427,7 @@ START_TEST(test_parsing_boolean_infix_expression_loop) {
 }
 END_TEST
 
-START_TEST(test_if_expression)
-{
+START_TEST(test_if_expression) {
   const char *input = "if (x < y) { x }";
 
   lexer_t *lexer = lexer_new(input);
@@ -468,11 +467,66 @@ START_TEST(test_if_expression)
                 consequence->statements_len);
 
   _test_statement_type(consequence->statements[0], EXPRESSION_STATEMENT);
-  expression_statement_t *consequence_expression = consequence->statements[0]->expression_statement;
+  expression_statement_t *consequence_expression =
+      consequence->statements[0]->expression_statement;
   _test_str_literal(consequence_expression->expression->identifier->value, "x");
 
-  ck_assert_msg(if_exp->alternative == NULL,
-                "Else part is not NULL");
+  ck_assert_msg(if_exp->alternative == NULL, "Else part is not NULL");
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+END_TEST
+
+START_TEST(test_if_else_expression) {
+  const char *input = "if (x < y) { x } else { y }";
+
+  lexer_t *lexer = lexer_new(input);
+  parser_t *parser = parser_new(lexer);
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser); /* destroys lexer too */
+    ck_abort_msg("Program has got errors");
+    return;
+  }
+
+  ck_assert_msg(program->len == 1,
+                "program.statements does not contain %d statements. Got=%ld\n",
+                1, program->len);
+
+  statement_t *statement = program->statements[0];
+  _test_statement_type(statement, EXPRESSION_STATEMENT);
+
+  expression_statement_t *expression_statement =
+      statement->expression_statement;
+  expression_t *expression = expression_statement->expression;
+  _test_expression_type(expression, IF_EXP);
+
+  if_exp_t *if_exp = expression->if_exp;
+  expression_t *condition = if_exp->condition;
+  _test_expression_type(condition, INFIX_EXP);
+
+  infix_t *condition_core = condition->infix;
+  _test_str_literal(condition_core->operator->literal, "<");
+  _test_str_literal(condition_core->left->identifier->value, "x");
+  _test_str_literal(condition_core->right->identifier->value, "y");
+
+  block_statement_t *consequence = if_exp->consequence;
+  ck_assert_msg(consequence->statements_len == 1,
+                "consequence is not 1 statements, Got=%d\n",
+                consequence->statements_len);
+
+  _test_statement_type(consequence->statements[0], EXPRESSION_STATEMENT);
+  expression_statement_t *consequence_expression =
+      consequence->statements[0]->expression_statement;
+  _test_str_literal(consequence_expression->expression->identifier->value, "x");
+
+  block_statement_t *alternative = if_exp->alternative;
+  ck_assert_msg(if_exp->alternative != NULL, "Else part is NULL");
+  expression_statement_t *alternative_expression =
+      alternative->statements[0]->expression_statement;
+  _test_str_literal(alternative_expression->expression->identifier->value, "y");
 
   program_destroy(&program);
   parser_destroy(&parser);
@@ -509,6 +563,7 @@ Suite *parser_suite(void) {
                       boolean_infix_tests_len);
 
   tcase_add_test(tc_core, test_if_expression);
+  tcase_add_test(tc_core, test_if_else_expression);
 
   suite_add_tcase(s, tc_core);
 

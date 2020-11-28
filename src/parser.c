@@ -238,7 +238,8 @@ block_statement_t *parser_parse_block_statement(parser_t *parser) {
   size_t statements_len = 0;
   parser_next_token(parser);
 
-  while (!parser_cur_token_is(parser, RBRACE_TOKEN) && !parser_cur_token_is(parser, EOF_TOKEN)) {
+  while (!parser_cur_token_is(parser, RBRACE_TOKEN) &&
+         !parser_cur_token_is(parser, EOF_TOKEN)) {
     statement_t *statement = parser_parse_statement(parser);
     if (statement != NULL) {
       if (statements == NULL) {
@@ -247,7 +248,7 @@ block_statement_t *parser_parse_block_statement(parser_t *parser) {
         statements_len += 1;
       } else {
         statements =
-          realloc(statements, sizeof(statement_t *) * (statements_len + 1));
+            realloc(statements, sizeof(statement_t *) * (statements_len + 1));
         if (statements == NULL) {
           /*
            * TODO: Better error handling needed
@@ -255,7 +256,6 @@ block_statement_t *parser_parse_block_statement(parser_t *parser) {
           puts("Cannot allocate for statements");
           exit(1);
         }
-        /* program->statements = statements; */
         statements[statements_len] = statement;
         statements_len += 1;
       }
@@ -263,10 +263,11 @@ block_statement_t *parser_parse_block_statement(parser_t *parser) {
     parser_next_token(parser);
   }
 
-  block_statement_t *block_statement = block_statement_new(block_token, statements, statements_len);
-  if (parser_cur_token_is(parser, RBRACE_TOKEN) || parser_cur_token_is(parser, EOF_TOKEN)) {
+  block_statement_t *block_statement =
+      block_statement_new(block_token, statements, statements_len);
+  if (parser_cur_token_is(parser, RBRACE_TOKEN) ||
+      parser_cur_token_is(parser, EOF_TOKEN)) {
     token_destroy(&parser->cur_token);
-    parser_next_token(parser);
   }
   return block_statement;
 }
@@ -388,7 +389,19 @@ expression_t *parser_parse_if_expression(parser_t *parser, token_t *token,
   }
 
   block_statement_t *consequence = parser_parse_block_statement(parser);
-  if_exp_t *if_exp = if_exp_new(if_token, condition, consequence, NULL);  
+  block_statement_t *alternative = NULL;
+  if (parser_peek_token_is(parser, ELSE_TOKEN)) {
+    parser_next_token(parser);
+    /* Destroy `ELSE_TOKEN` */
+    token_destroy(&parser->cur_token);
+    if (!parser_expect_peek(parser, LBRACE_TOKEN)) {
+      assert("Else requires LBRACE");
+      return NULL;
+    }
+    alternative = parser_parse_block_statement(parser);
+  }
+
+  if_exp_t *if_exp = if_exp_new(if_token, condition, consequence, alternative);
   return expression_new(IF_EXP, if_exp);
 }
 
@@ -396,7 +409,7 @@ expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence) {
   assert(parser);
   assert(token);
-  token_t *operator= token;
+  token_t *operator = token;
 
   parser_next_token(parser);
 
