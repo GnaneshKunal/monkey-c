@@ -22,6 +22,7 @@ parser_t *parser_new(lexer_t *l) {
   p->prefix_parselets[FALSE_TOKEN] = parser_parse_boolean;
   p->prefix_parselets[LPAREN_TOKEN] = parser_parse_grouped_expression;
   p->prefix_parselets[IF_TOKEN] = parser_parse_if_expression;
+  p->prefix_parselets[FUNCTION_TOKEN] = parser_parse_fn_literal;
 
   p->infix_parselets = calloc(RETURN_TOKEN + 1, sizeof(infix_parse_fn));
   assert(p->infix_parselets);
@@ -222,10 +223,17 @@ expression_statement_t *parser_parse_expression_statement(parser_t *parser) {
   /* GIVE PRECEDENCE */
   expression_t *expression = parser_parse_expression(parser, LOWEST_PRECEDENCE);
   if (parser_peek_token_is(parser, SEMICOLON_TOKEN)) {
-    /* token_destroy(&parser->cur_token); */
+
+    /*
+     * No need to destroy the current token since the token is stored
+     * in some expression or is deleted already.
+     */
     parser_next_token(parser);
+
+    assert(parser->cur_token->type == SEMICOLON_TOKEN);
+    token_destroy(&parser->cur_token);
   }
-  /* token_destroy(&parser->cur_token); */
+
   expression_statement_t *expression_statement =
       expression_statement_new(token, expression);
   return expression_statement;
@@ -405,11 +413,76 @@ expression_t *parser_parse_if_expression(parser_t *parser, token_t *token,
   return expression_new(IF_EXP, if_exp);
 }
 
+param_t *parser_parse_params(parser_t *parser) {
+
+  assert(parser->cur_token->type == LPAREN_TOKEN);
+  /* Delete LPAREN TOKEN */
+  token_destroy(&parser->cur_token);
+
+  param_t *params = param_new();
+
+  if (parser_peek_token_is(parser, RPAREN_TOKEN)) {
+    parser_next_token(parser);
+    token_destroy(&parser->cur_token); /* Delete RPAREN */
+    return params;
+  }
+
+  parser_next_token(parser);
+
+  identifier_t *identifier = identifier_new(parser->cur_token);
+  param_append(params, identifier);
+
+  while (parser_peek_token_is(parser, COMMA_TOKEN)) {
+    /* identifier token */
+    parser_next_token(parser);
+    assert(parser->cur_token->type == COMMA_TOKEN);
+    token_destroy(&parser->cur_token); /* delete COMMA token */
+    parser_next_token(parser);
+
+    identifier = identifier_new(parser->cur_token);
+    param_append(params, identifier);
+  }
+
+  if (!parser_expect_peek(parser, RPAREN_TOKEN)) {
+    assert("Expected RPAREN");
+    return NULL;
+  }
+
+  return params;
+}
+
+expression_t *parser_parse_fn_literal(parser_t *parser, token_t *token,
+                                      PRECEDENCE precedence) {
+
+  token_t *fn_token = parser->cur_token;
+
+  if (!parser_expect_peek(parser, LPAREN_TOKEN)) {
+    assert("Expected LPAREN");
+    return NULL;
+  }
+
+  param_t *params = parser_parse_params(parser);
+
+  assert(parser->cur_token->type == RPAREN_TOKEN);
+  token_destroy(&parser->cur_token);
+
+  if (!parser_expect_peek(parser, LBRACE_TOKEN)) {
+    assert("Expected LBRACE");
+    return NULL;
+  }
+
+  block_statement_t *body = parser_parse_block_statement(parser);
+
+  fn_t *fn = fn_new(fn_token, params, body);
+
+  return expression_new(FN_EXP, fn);
+}
+
 expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
                                   PRECEDENCE precedence) {
   assert(parser);
   assert(token);
-  token_t *operator = token;
+  token_t *operator= token;
 
   parser_next_token(parser);
 

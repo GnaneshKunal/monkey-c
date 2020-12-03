@@ -1,7 +1,7 @@
 #include "lexer.h"
 
 struct _lexer_t {
-  char *input;
+  const char *input;
   uint32_t position; /* current position in input (points to current char) */
   uint32_t read_position; /* current reading position in input (after current
                              char) */
@@ -38,7 +38,7 @@ lexer_t *lexer_new(const char *input) {
   l->position = 0;
   l->read_position = 0;
   l->ch = 0;
-  l->input = strdup(input);
+  l->input = input;
   l->keywords = keywords_initialize();
 
   lexer_read_char(l);
@@ -51,7 +51,6 @@ void lexer_destroy(lexer_t **l_p) {
   if (*l_p) {
     lexer_t *l = *l_p;
     keywords_destroy(&l->keywords);
-    free(l->input);
     free(l);
     *l_p = NULL;
   }

@@ -16,6 +16,7 @@ typedef enum {
   PREFIX_EXP,
   INFIX_EXP,
   IF_EXP,
+  FN_EXP,
 } EXPRESSION_TYPE;
 
 typedef struct _identifier_t {
@@ -66,15 +67,37 @@ void infix_destroy(infix_t **i_p);
 char *infix_to_string(infix_t *infix);
 
 typedef struct _if_exp_t {
-  token_t *token;               /* The 'if' token */
+  token_t *token; /* The 'if' token */
   expression_t *condition;
   block_statement_t *consequence;
   block_statement_t *alternative;
 } if_exp_t;
 
-if_exp_t *if_exp_new(token_t *token, expression_t *condition, block_statement_t *consequence, block_statement_t *alternative);
+if_exp_t *if_exp_new(token_t *token, expression_t *condition,
+                     block_statement_t *consequence,
+                     block_statement_t *alternative);
 void if_exp_destroy(if_exp_t **i_p);
 char *if_exp_to_string(if_exp_t *if_exp);
+
+typedef struct _param_t {
+  identifier_t **parameters;
+  size_t len;
+} param_t;
+
+param_t *param_new(void);
+void param_append(param_t *params, identifier_t *identifier);
+void param_destroy(param_t **params);
+char *param_to_string(param_t *params);
+
+typedef struct _fn_t {
+  token_t *token; /* 'fn' token */
+  param_t *params;
+  block_statement_t *body;
+} fn_t;
+
+fn_t *fn_new(token_t *token, param_t *params, block_statement_t *body);
+void fn_destroy(fn_t **function_literal);
+char *fn_to_string(fn_t *functional_literal);
 
 /* forward declaration at the top */
 struct _expression_t {
@@ -87,6 +110,7 @@ struct _expression_t {
     prefix_t *prefix;
     infix_t *infix;
     if_exp_t *if_exp;
+    fn_t *fn;
   };
 };
 
@@ -134,13 +158,12 @@ char *
 expression_statement_to_string(expression_statement_t *expression_statement);
 
 struct _block_statement_t {
-  token_t *token;               /* the '{' token */
+  token_t *token; /* the '{' token */
   statement_t **statements;
   size_t statements_len;
 };
 
-block_statement_t *block_statement_new(token_t *token,
-                                       statement_t **statements,
+block_statement_t *block_statement_new(token_t *token, statement_t **statements,
                                        size_t statements_len);
 void block_statement_destroy(block_statement_t **b_p);
 char *block_statement_to_string(block_statement_t *block_statement);

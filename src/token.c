@@ -9,7 +9,8 @@ TOKEN *keywords_initialize(void) {
   token_table[gnu_hash((const uint8_t *)"false") % KEYWORDS_SIZE] = FALSE_TOKEN;
   token_table[gnu_hash((const uint8_t *)"if") % KEYWORDS_SIZE] = IF_TOKEN;
   token_table[gnu_hash((const uint8_t *)"else") % KEYWORDS_SIZE] = ELSE_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] = RETURN_TOKEN;
+  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] =
+      RETURN_TOKEN;
 
   return token_table;
 }
@@ -108,6 +109,7 @@ void token_destroy(token_t **tok_p) {
     token_t *tok = *tok_p;
     assert(tok);
     assert(tok->literal);
+    printf("%s\n", tok->literal);
     free(tok->literal);
     free(tok);
     *tok_p = NULL;

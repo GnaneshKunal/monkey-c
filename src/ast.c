@@ -18,7 +18,7 @@ statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
     return s;
   case BLOCK_STATEMENT:
     s->type = BLOCK_STATEMENT;
-    s->expression_statement = (block_statement_t *)statement;
+    s->block_statement = (block_statement_t *)statement;
   default:
     return NULL;
   }
@@ -84,6 +84,9 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   case IF_EXP:
     exp->if_exp = (if_exp_t *)expression;
     break;
+  case FN_EXP:
+    exp->fn = (fn_t *)expression;
+    break;
   default:
     assert("Invalid expression");
   }
@@ -113,6 +116,9 @@ void expression_destroy(expression_t **e_p) {
     case IF_EXP:
       if_exp_destroy(&expression->if_exp);
       break;
+    case FN_EXP:
+      fn_destroy(&expression->fn);
+      break;
     default:
       assert("Invalid expression");
     }
@@ -138,6 +144,8 @@ char *expression_to_string(expression_t *expression) {
     return infix_to_string(expression->infix);
   case IF_EXP:
     return if_exp_to_string(expression->if_exp);
+  case FN_EXP:
+    return fn_to_string(expression->fn);
   default:
     puts("Error: Unknown expression");
     assert(false);
@@ -298,7 +306,9 @@ char *infix_to_string(infix_t *infix) {
   return str;
 }
 
-if_exp_t *if_exp_new(token_t *token, expression_t *condition, block_statement_t *consequence, block_statement_t *alternative) {
+if_exp_t *if_exp_new(token_t *token, expression_t *condition,
+                     block_statement_t *consequence,
+                     block_statement_t *alternative) {
   assert(token);
   assert(condition);
   assert(consequence);
@@ -348,6 +358,91 @@ char *if_exp_to_string(if_exp_t *if_exp) {
     return final_str;
   }
 
+  return str;
+}
+
+param_t *param_new(void) {
+  param_t *params = malloc(sizeof(param_t));
+  params->parameters = NULL;
+  params->len = 0;
+  return params;
+}
+
+void param_append(param_t *params, identifier_t *identifier) {
+  assert(params);
+  assert(identifier);
+  params->parameters =
+      realloc(params->parameters, (params->len + 1) * sizeof(identifier_t *));
+  assert(params->parameters);
+  params->parameters[params->len++] = identifier;
+}
+
+void param_destroy(param_t **p_p) {
+  assert(p_p);
+  if (*p_p) {
+    param_t *params = *p_p;
+    for (int i = 0; i < params->len; i++) {
+      identifier_destroy(&params->parameters[i]);
+    }
+    free(params->parameters);
+    free(params);
+    *p_p = NULL;
+  }
+}
+
+char *param_to_string(param_t *params) {
+  assert(params);
+  char *str = NULL;
+  asprintf(&str, "(");
+  for (int i = 0; i < params->len; i++) {
+    char *tmp_str = NULL;
+    char *i_str = identifier_to_string(params->parameters[i]);
+    asprintf(&tmp_str, "%s, %s", str, i_str);
+    free(i_str);
+    free(str);
+    str = tmp_str;
+  }
+  char *str2 = NULL;
+  asprintf(&str2, "%s)", str);
+  free(str);
+  return str2;
+}
+
+fn_t *fn_new(token_t *token, param_t *params, block_statement_t *body) {
+  assert(token);
+  /* Zero  */
+  /* assert(params); */
+  assert(body);
+
+  fn_t *function_literal = malloc(sizeof(fn_t));
+  function_literal->token = token;
+  function_literal->params = params;
+  function_literal->body = body;
+
+  return function_literal;
+}
+
+void fn_destroy(fn_t **f_p) {
+  assert(f_p);
+  if (*f_p) {
+    fn_t *function_literal = *f_p;
+    token_destroy(&function_literal->token);
+    param_destroy(&function_literal->params);
+    block_statement_destroy(&function_literal->body);
+    free(function_literal);
+    *f_p = NULL;
+    return;
+  }
+}
+
+char *fn_to_string(fn_t *function_literal) {
+  assert(function_literal);
+  char *str = NULL;
+  char *params_str = param_to_string(function_literal->params);
+  char *block_statement_str = block_statement_to_string(function_literal->body);
+  asprintf(&str, "fn %s %s", params_str, block_statement_str);
+  free(params_str);
+  free(block_statement_str);
   return str;
 }
 
@@ -452,8 +547,7 @@ expression_statement_to_string(expression_statement_t *expression_statement) {
   return expression_to_string(expression_statement->expression);
 }
 
-block_statement_t *block_statement_new(token_t *token,
-                                       statement_t **statements,
+block_statement_t *block_statement_new(token_t *token, statement_t **statements,
                                        size_t statements_len) {
   assert(token);
   assert(statements);

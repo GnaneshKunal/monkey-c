@@ -533,6 +533,65 @@ START_TEST(test_if_else_expression) {
 }
 END_TEST
 
+START_TEST(test_function_literal_parsing) {
+  const char *input = "fn(x, y) { x + y; }";
+
+  lexer_t *lexer = lexer_new(input);
+  parser_t *parser = parser_new(lexer);
+
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser); /* destroys lexer too */
+    ck_abort_msg("Program has got errors");
+    return;
+  }
+
+  ck_assert_msg(program->len == 1,
+                "program.statements does not contain %d statements. Got=%ld\n",
+                1, program->len);
+
+  statement_t *statement = program->statements[0];
+  _test_statement_type(statement, EXPRESSION_STATEMENT);
+
+  expression_statement_t *expression_statement =
+      statement->expression_statement;
+  expression_t *expression = expression_statement->expression;
+  _test_expression_type(expression, FN_EXP);
+
+  fn_t *function = expression->fn;
+  param_t *params = function->params;
+  ck_assert_msg(params->len == 2,
+                "function literal parameters wrong. want 2, got=%ld\n",
+                params->len);
+
+  _test_str_literal(params->parameters[0]->value, "x");
+  _test_str_literal(params->parameters[1]->value, "y");
+
+  block_statement_t *block_statement = function->body;
+  ck_assert_msg(block_statement->statements_len == 1,
+                "function body statements has not 1 statements. got=%ld\n",
+                block_statement->statements_len);
+
+  _test_statement_type(block_statement->statements[0], EXPRESSION_STATEMENT);
+  expression_statement_t *b_expression_statement =
+      block_statement->statements[0]->expression_statement;
+
+  expression_t *b_expression = b_expression_statement->expression;
+  _test_expression_type(b_expression, INFIX_EXP);
+
+  infix_t *infix = b_expression->infix;
+  _test_str_literal(infix->operator->literal, "+");
+
+  _test_str_literal(infix->left->identifier->value, "x");
+
+  _test_str_literal(infix->right->identifier->value, "y");
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+END_TEST
+
 Suite *parser_suite(void) {
   Suite *s;
   TCase *tc_core;
@@ -564,6 +623,7 @@ Suite *parser_suite(void) {
 
   tcase_add_test(tc_core, test_if_expression);
   tcase_add_test(tc_core, test_if_else_expression);
+  tcase_add_test(tc_core, test_function_literal_parsing);
 
   suite_add_tcase(s, tc_core);
 
