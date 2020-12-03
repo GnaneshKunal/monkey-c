@@ -592,6 +592,74 @@ START_TEST(test_function_literal_parsing) {
 }
 END_TEST
 
+typedef struct {
+  char *input;
+  char *expected_params;
+  int params_len;
+} test_fn_params_t;
+
+test_fn_params_t fn_params_tests[] = {{
+                                          "fn() {};",
+                                          "",
+                                      },
+                                      {
+                                          "fn(x) {};",
+                                          "x",
+                                          1,
+                                      },
+                                      {
+                                          "fn(x, y, z) {}",
+                                          "x,y,z",
+                                          3,
+                                      }};
+
+START_TEST(test_function_parameter_parsing_loop) {
+  lexer_t *lexer = lexer_new(fn_params_tests[_i].input);
+  parser_t *parser = parser_new(lexer);
+
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser); /* destroys lexer too */
+    ck_abort_msg("Program has got errors");
+    return;
+  }
+
+  ck_assert_msg(program->len == 1,
+                "program.statements does not contain %d statements. Got=%ld\n",
+                1, program->len);
+
+  statement_t *statement = program->statements[0];
+  _test_statement_type(statement, EXPRESSION_STATEMENT);
+
+  expression_statement_t *expression_statement =
+      statement->expression_statement;
+  expression_t *expression = expression_statement->expression;
+  _test_expression_type(expression, FN_EXP);
+
+  fn_t *function = expression->fn;
+  param_t *params = function->params;
+  ck_assert_msg(params->len == fn_params_tests[_i].params_len,
+                "function literal parameters wrong. want 2, got=%ld\n",
+                params->len);
+
+  char *rest = NULL;
+  char *param;
+  size_t p_idx = 0;
+
+  char *params_str = strdup(fn_params_tests[_i].expected_params);
+
+  for (param = strtok_r(params_str, ",", &rest); param != NULL;
+       param = strtok_r(NULL, ",", &rest)) {
+    _test_str_literal(params->parameters[p_idx++]->value, param);
+  }
+  free(params_str);
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+END_TEST
+
 Suite *parser_suite(void) {
   Suite *s;
   TCase *tc_core;
@@ -624,6 +692,11 @@ Suite *parser_suite(void) {
   tcase_add_test(tc_core, test_if_expression);
   tcase_add_test(tc_core, test_if_else_expression);
   tcase_add_test(tc_core, test_function_literal_parsing);
+
+  size_t fn_params_tests_len =
+      sizeof(fn_params_tests) / sizeof(*fn_params_tests);
+  tcase_add_loop_test(tc_core, test_function_parameter_parsing_loop, 0,
+                      fn_params_tests_len);
 
   suite_add_tcase(s, tc_core);
 

@@ -550,8 +550,9 @@ expression_statement_to_string(expression_statement_t *expression_statement) {
 block_statement_t *block_statement_new(token_t *token, statement_t **statements,
                                        size_t statements_len) {
   assert(token);
-  assert(statements);
-  assert(statements_len > 0);
+  /* Empty block statements */
+  /* assert(statements); */
+  /* assert(statements_len > 0); */
   block_statement_t *block_statement = malloc(sizeof(block_statement_t));
   block_statement->token = token;
   block_statement->statements = statements;

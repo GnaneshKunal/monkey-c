@@ -109,7 +109,6 @@ void token_destroy(token_t **tok_p) {
     token_t *tok = *tok_p;
     assert(tok);
     assert(tok->literal);
-    printf("%s\n", tok->literal);
     free(tok->literal);
     free(tok);
     *tok_p = NULL;

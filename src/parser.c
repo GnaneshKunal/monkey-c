@@ -423,7 +423,6 @@ param_t *parser_parse_params(parser_t *parser) {
 
   if (parser_peek_token_is(parser, RPAREN_TOKEN)) {
     parser_next_token(parser);
-    token_destroy(&parser->cur_token); /* Delete RPAREN */
     return params;
   }
 
