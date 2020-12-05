@@ -24,6 +24,10 @@
 #include <signal.h>
 #include <unistd.h>
 
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 64
+#endif
+
 static void handler(int sig) {
   void *array[10];
   size_t size;

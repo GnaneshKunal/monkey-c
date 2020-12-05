@@ -12,7 +12,6 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.11.2])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
-CFLAGS='-g3 -O0 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls'
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
@@ -38,6 +37,22 @@ AC_TYPE_UINT8_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gethostname strdup])
+
+dnl Enable debug
+AC_ARG_ENABLE([debug],
+    AS_HELP_STRING([--enable-debug], [Enable debug]))
+
+AS_IF([test "x$enable_debug" = "xyes"], [
+            CFLAGS='-g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls'
+])
+
+dnl with asan
+AC_ARG_WITH([asan],
+    AS_HELP_STRING([--with-asan], [With address sanitizer]))
+
+AS_IF([test "x$with_asan" = "xyes"], [
+            CFLAGS+=' -fsanitize=address'
+])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

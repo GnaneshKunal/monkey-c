@@ -2,7 +2,6 @@
 - Use =AC_ARG_WITH= for the user to choose between readline/libedit and no edit.
   - The default configuration should be used and the user can override
     the default with =--with-readline=
-- Use the =check= library for testing
 - Use =AC_TYPE_INT32_T= to test for =int32_t=.
   - Also use =HAVE_STDINT_H= and =HAVE_INTTYPES_H= to properly extract
     typedefs from the correct library.
