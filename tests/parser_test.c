@@ -1,6 +1,21 @@
 #include "../src/parser.h"
 #include <check.h>
 
+typedef enum {
+  IDENT_DT,
+  INT_DT,
+  BOOL_DT,
+} TEST_DATA_TYPE;
+
+typedef struct {
+  TEST_DATA_TYPE dt;
+  union {
+    char *ident_data;
+    int32_t int_data;
+    bool bool_data;
+  };
+} test_data_t;
+
 void _test_statement_type(statement_t *statement, STATEMENT_TYPE st) {
   ck_assert_msg(statement->type == st, "Expected statement=%s, Got=%s\n",
                 statement_type_to_str(st),
@@ -47,6 +62,10 @@ void _test_integer_literal(expression_t *expression, int32_t value) {
   _test_str_literal(integer->token->literal, int_str);
 }
 
+void _test_ident_literal(expression_t *expression, char *expected_identifier) {
+  _test_str_literal(expression->identifier->value, expected_identifier);
+}
+
 void _test_boolean_literal(expression_t *expression, bool value) {
   _test_expression_type(expression, BOOLEAN_EXP);
 
@@ -68,6 +87,39 @@ void _test_literal(EXPRESSION_TYPE et, expression_t *expression,
     return;
   default:
     ck_abort_msg("Unknown literal type (%d)", et);
+  }
+}
+
+void _test_infix(infix_t *infix, char *expected_operator, test_data_t left,
+                 test_data_t right) {
+  _test_str_literal(infix->operator->literal, expected_operator);
+
+  switch (left.dt) {
+  case IDENT_DT:
+    _test_ident_literal(infix->left, left.ident_data);
+    break;
+  case INT_DT:
+    _test_integer_literal(infix->left, left.int_data);
+    break;
+  case BOOL_DT:
+    _test_boolean_literal(infix->left, left.bool_data);
+    break;
+  default:
+    ck_abort_msg("Unknown infix type (%d)", left.dt);
+  }
+
+  switch (right.dt) {
+  case IDENT_DT:
+    _test_ident_literal(infix->right, right.ident_data);
+    break;
+  case INT_DT:
+    _test_integer_literal(infix->right, right.int_data);
+    break;
+  case BOOL_DT:
+    _test_boolean_literal(infix->right, right.bool_data);
+    break;
+  default:
+    ck_abort_msg("Unknown infix type (%d)", right.dt);
   }
 }
 
@@ -331,11 +383,10 @@ START_TEST(test_parsing_infix_expression_loop) {
   _test_expression_type(expression, INFIX_EXP);
 
   infix_t *infix = expression->infix;
-  _test_str_literal(infix->operator->literal, infix_tests[_i].operator);
-
-  _test_integer_literal(infix->left, infix_tests[_i].left_value);
-
-  _test_integer_literal(infix->right, infix_tests[_i].right_value);
+  _test_infix(infix,
+              infix_tests[_i].operator,(
+                  test_data_t){INT_DT, .int_data = infix_tests[_i].left_value},
+              (test_data_t){INT_DT, .int_data = infix_tests[_i].right_value});
 
   program_destroy(&program);
   parser_destroy(&parser);
@@ -369,6 +420,18 @@ operator_precedence_tests operator_tests[] = {
     {"2 / (5 + 5)", "(2 / (5 + 5))"},
     {"-(5 + 5)", "(-(5 + 5))"},
     {"!(true == true)", "(!(true == true))"},
+    {
+      "a + add(b * c) + d",
+      "((a + add((b * c))) + d)"
+    },
+    {
+      "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+      "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"
+    },
+    {
+      "add(a + b + c * d / f + g)",
+      "add((((a + b) + ((c * d) / f)) + g))"
+    }
 };
 
 START_TEST(test_parsing_operator_precedence_loop) {
@@ -416,11 +479,11 @@ START_TEST(test_parsing_boolean_infix_expression_loop) {
   _test_expression_type(expression, INFIX_EXP);
 
   infix_t *infix = expression->infix;
-  _test_str_literal(infix->operator->literal, boolean_infix_tests[_i].operator);
-
-  _test_boolean_literal(infix->left, boolean_infix_tests[_i].left_value);
-
-  _test_boolean_literal(infix->right, boolean_infix_tests[_i].right_value);
+  _test_infix(
+      infix, boolean_infix_tests[_i].operator,(
+                 test_data_t){BOOL_DT,
+                              .bool_data = boolean_infix_tests[_i].left_value},
+      (test_data_t){BOOL_DT, .bool_data = boolean_infix_tests[_i].right_value});
 
   program_destroy(&program);
   parser_destroy(&parser);
@@ -457,9 +520,8 @@ START_TEST(test_if_expression) {
   _test_expression_type(condition, INFIX_EXP);
 
   infix_t *condition_core = condition->infix;
-  _test_str_literal(condition_core->operator->literal, "<");
-  _test_str_literal(condition_core->left->identifier->value, "x");
-  _test_str_literal(condition_core->right->identifier->value, "y");
+  _test_infix(condition_core, "<", (test_data_t){IDENT_DT, .ident_data = "x"},
+              (test_data_t){IDENT_DT, .ident_data = "y"});
 
   block_statement_t *consequence = if_exp->consequence;
   ck_assert_msg(consequence->statements_len == 1,
@@ -508,9 +570,8 @@ START_TEST(test_if_else_expression) {
   _test_expression_type(condition, INFIX_EXP);
 
   infix_t *condition_core = condition->infix;
-  _test_str_literal(condition_core->operator->literal, "<");
-  _test_str_literal(condition_core->left->identifier->value, "x");
-  _test_str_literal(condition_core->right->identifier->value, "y");
+  _test_infix(condition_core, "<", (test_data_t){IDENT_DT, .ident_data = "x"},
+              (test_data_t){IDENT_DT, .ident_data = "y"});
 
   block_statement_t *consequence = if_exp->consequence;
   ck_assert_msg(consequence->statements_len == 1,
@@ -581,11 +642,8 @@ START_TEST(test_function_literal_parsing) {
   _test_expression_type(b_expression, INFIX_EXP);
 
   infix_t *infix = b_expression->infix;
-  _test_str_literal(infix->operator->literal, "+");
-
-  _test_str_literal(infix->left->identifier->value, "x");
-
-  _test_str_literal(infix->right->identifier->value, "y");
+  _test_infix(infix, "+", (test_data_t){IDENT_DT, .ident_data = "x"},
+              (test_data_t){IDENT_DT, .ident_data = "y"});
 
   program_destroy(&program);
   parser_destroy(&parser);
@@ -660,6 +718,62 @@ START_TEST(test_function_parameter_parsing_loop) {
 }
 END_TEST
 
+START_TEST(test_call_expression_parsing) {
+  const char *input = "add(1, 2 * 3, 4 + 5);";
+
+  lexer_t *lexer = lexer_new(input);
+  parser_t *parser = parser_new(lexer);
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser); /* destroys lexer too */
+    ck_abort_msg("Program has got errors");
+    return;
+  }
+
+  ck_assert_msg(program->len == 1,
+                "program.statements does not contain %d statements. Got=%ld\n",
+                1, program->len);
+
+  statement_t *statement = program->statements[0];
+  _test_statement_type(statement, EXPRESSION_STATEMENT);
+
+  expression_statement_t *expression_statement =
+      statement->expression_statement;
+  expression_t *expression = expression_statement->expression;
+  _test_expression_type(expression, CALL_EXP);
+
+  call_exp_t *call_exp = expression->call_exp;
+
+  expression_t *expression_inner = call_exp->call_exp;
+
+  _test_expression_type(expression_inner, IDENT_EXP);
+
+  identifier_t *identifier = expression_inner->identifier;
+  _test_str_literal(identifier->value, "add");
+
+  param_exp_t *param_exps = call_exp->param_exps;
+  ck_assert_msg(param_exps->len == 3, "wrong length of arguments. Got=%ld\n",
+                param_exps->len);
+
+  expression_t *param_1 = param_exps->expressions[0];
+  _test_integer_literal(param_1, 1);
+
+  expression_t *param_2 = param_exps->expressions[1];
+  infix_t *infix_1 = param_2->infix;
+  _test_infix(infix_1, "*", (test_data_t){INT_DT, .int_data = 2},
+              (test_data_t){INT_DT, .int_data = 3});
+
+  expression_t *param_3 = param_exps->expressions[2];
+  infix_t *infix_2 = param_3->infix;
+  _test_infix(infix_2, "+", (test_data_t){INT_DT, .int_data = 4},
+              (test_data_t){INT_DT, .int_data = 5});
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
+END_TEST
+
 Suite *parser_suite(void) {
   Suite *s;
   TCase *tc_core;
@@ -697,6 +811,8 @@ Suite *parser_suite(void) {
       sizeof(fn_params_tests) / sizeof(*fn_params_tests);
   tcase_add_loop_test(tc_core, test_function_parameter_parsing_loop, 0,
                       fn_params_tests_len);
+
+  tcase_add_test(tc_core, test_call_expression_parsing);
 
   suite_add_tcase(s, tc_core);
 

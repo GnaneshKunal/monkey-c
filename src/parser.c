@@ -34,6 +34,7 @@ parser_t *parser_new(lexer_t *l) {
   p->infix_parselets[NOT_EQ_TOKEN] = parser_parse_infix;
   p->infix_parselets[LT_TOKEN] = parser_parse_infix;
   p->infix_parselets[GT_TOKEN] = parser_parse_infix;
+  p->infix_parselets[LPAREN_TOKEN] = parser_parse_call_expression;
 
   return p;
 }
@@ -450,6 +451,37 @@ param_t *parser_parse_params(parser_t *parser) {
   return params;
 }
 
+param_exp_t *parser_parse_param_exps(parser_t *parser) {
+  param_exp_t *params = param_exp_new();
+
+  if (parser_peek_token_is(parser, RPAREN_TOKEN)) {
+    parser_next_token(parser);
+    return params;
+  }
+  parser_next_token(parser);
+
+  expression_t *expression = parser_parse_expression(parser, LOWEST_PRECEDENCE);
+  param_exp_append(params, expression);
+
+  while (parser_peek_token_is(parser, COMMA_TOKEN)) {
+    /* expression_token */
+    parser_next_token(parser);
+    assert(parser->cur_token->type == COMMA_TOKEN);
+    token_destroy(&parser->cur_token); /* Delete 'COMMA' token */
+
+    parser_next_token(parser);
+    expression = parser_parse_expression(parser, LOWEST_PRECEDENCE);
+    param_exp_append(params, expression);
+  }
+
+  if (!parser_expect_peek(parser, RPAREN_TOKEN)) {
+    assert("Expected RPAREN");
+    return NULL;
+  }
+
+  return params;
+}
+
 expression_t *parser_parse_fn_literal(parser_t *parser, token_t *token,
                                       PRECEDENCE precedence) {
 
@@ -506,6 +538,27 @@ expression_t *parser_parse_infix(parser_t *parser, token_t *token,
   return expression;
 }
 
+expression_t *parser_parse_call_expression(parser_t *parser, token_t *token,
+                                           PRECEDENCE precedence, expression_t *left) {
+  assert(parser);
+  assert(token);
+  assert(left);
+
+  assert(token->type == LPAREN_TOKEN);
+  token_t *lparen = token;
+  PRECEDENCE cur_precedence = token_get_precedence(lparen);
+
+  /* parser_next_token(parser); */
+
+  param_exp_t *params = parser_parse_param_exps(parser);
+
+  assert(parser->cur_token->type == RPAREN_TOKEN);
+  token_destroy(&parser->cur_token);
+
+  call_exp_t *call_exp = call_exp_new(lparen, params, left);
+  return expression_new(CALL_EXP, call_exp);
+}
+
 bool parser_cur_token_is(parser_t *parser, TOKEN token_type) {
   assert(parser);
   return parser->cur_token->type == token_type;
@@ -541,6 +594,8 @@ PRECEDENCE token_get_precedence(token_t *token) {
   case LT_TOKEN:
   case GT_TOKEN:
     return LESSGREATER_PRECEDENCE;
+  case LPAREN_TOKEN:
+    return CALL_PRECEDENCE;
   default:
     return LOWEST_PRECEDENCE;
   }

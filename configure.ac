@@ -12,6 +12,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.11.2])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
+CFLAGS='-g3 -O0 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls'
 AC_PROG_CC
 AC_PROG_LIBTOOL
 

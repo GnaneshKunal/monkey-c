@@ -87,6 +87,9 @@ expression_t *expression_new(EXPRESSION_TYPE e_type, void *expression) {
   case FN_EXP:
     exp->fn = (fn_t *)expression;
     break;
+  case CALL_EXP:
+    exp->call_exp = (call_exp_t *)expression;
+    break;
   default:
     assert("Invalid expression");
   }
@@ -119,6 +122,9 @@ void expression_destroy(expression_t **e_p) {
     case FN_EXP:
       fn_destroy(&expression->fn);
       break;
+    case CALL_EXP:
+      call_exp_destroy(&expression->call_exp);
+      break;
     default:
       assert("Invalid expression");
     }
@@ -146,6 +152,8 @@ char *expression_to_string(expression_t *expression) {
     return if_exp_to_string(expression->if_exp);
   case FN_EXP:
     return fn_to_string(expression->fn);
+  case CALL_EXP:
+    return call_exp_to_string(expression->call_exp);
   default:
     puts("Error: Unknown expression");
     assert(false);
@@ -397,7 +405,11 @@ char *param_to_string(param_t *params) {
   for (int i = 0; i < params->len; i++) {
     char *tmp_str = NULL;
     char *i_str = identifier_to_string(params->parameters[i]);
-    asprintf(&tmp_str, "%s, %s", str, i_str);
+    if (i == 0) {
+      asprintf(&tmp_str, "%s%s", str, i_str);
+    } else {
+      asprintf(&tmp_str, "%s, %s", str, i_str);
+    }
     free(i_str);
     free(str);
     str = tmp_str;
@@ -408,9 +420,61 @@ char *param_to_string(param_t *params) {
   return str2;
 }
 
+param_exp_t *param_exp_new(void) {
+  param_exp_t *param_exps = malloc(sizeof(param_exp_t));
+  param_exps->expressions = NULL;
+  param_exps->len = 0;
+  return param_exps;
+}
+
+void param_exp_append(param_exp_t *param_exps, expression_t *expression) {
+  assert(param_exps);
+  assert(expression);
+  param_exps->expressions =
+    realloc(param_exps->expressions, (param_exps->len + 1) * sizeof(expression_t *));
+  assert(param_exps->expressions);
+  param_exps->expressions[param_exps->len++] = expression;
+}
+
+void param_exp_destroy(param_exp_t **p_p) {
+  assert(p_p);
+  if (*p_p) {
+    param_exp_t *param_exps = *p_p;
+    for (int i = 0; i < param_exps->len; i++) {
+      expression_destroy(&param_exps->expressions[i]);
+    }
+    free(param_exps->expressions);
+    free(param_exps);
+    *p_p = NULL;
+  }
+}
+
+char *param_exp_to_string(param_exp_t *param_exps) {
+  assert(param_exps);
+  char *str = NULL;
+  asprintf(&str, "(");
+  for (int i = 0; i < param_exps->len; i++) {
+    char *tmp_str = NULL;
+    char *e_str = expression_to_string(param_exps->expressions[i]);
+    if (i == 0) {
+      asprintf(&tmp_str, "%s%s", str, e_str);
+    } else {
+      asprintf(&tmp_str, "%s, %s", str, e_str);
+    }
+    free(e_str);
+    free(str);
+    str = tmp_str;
+  }
+  char *str2 = NULL;
+  asprintf(&str2, "%s)", str);
+  free(str);
+  return str2;
+}
+
+
 fn_t *fn_new(token_t *token, param_t *params, block_statement_t *body) {
   assert(token);
-  /* Zero  */
+  /* Zero params */
   /* assert(params); */
   assert(body);
 
@@ -440,9 +504,43 @@ char *fn_to_string(fn_t *function_literal) {
   char *str = NULL;
   char *params_str = param_to_string(function_literal->params);
   char *block_statement_str = block_statement_to_string(function_literal->body);
-  asprintf(&str, "fn %s %s", params_str, block_statement_str);
+  asprintf(&str, "fn%s %s", params_str, block_statement_str);
   free(params_str);
   free(block_statement_str);
+  return str;
+}
+
+call_exp_t *call_exp_new(token_t *token, param_exp_t *param_exps, expression_t *exp) {
+  assert(token);
+  assert(param_exps);
+  assert(exp);
+  call_exp_t *call_exp = malloc(sizeof(call_exp_t));
+  call_exp->token = token;
+  call_exp->call_exp = exp;
+  call_exp->param_exps = param_exps;
+  return call_exp;
+}
+
+void call_exp_destroy(call_exp_t **c_p) {
+  assert(c_p);
+  if (*c_p) {
+    call_exp_t *call_exp = *c_p;
+    token_destroy(&call_exp->token);
+    expression_destroy(&call_exp->call_exp);
+    param_exp_destroy(&call_exp->param_exps);
+    free(call_exp);
+    *c_p = NULL;
+  }
+}
+
+char *call_exp_to_string(call_exp_t *call_exp) {
+  assert(call_exp);
+  char *str = NULL;
+  char *params_str = param_exp_to_string(call_exp->param_exps);
+  char *expression_str = expression_to_string(call_exp->call_exp);
+  asprintf(&str, "%s%s", expression_str, params_str);
+  free(params_str);
+  free(expression_str);
   return str;
 }
 
@@ -680,6 +778,10 @@ const char *expression_type_to_str(EXPRESSION_TYPE et) {
     return "PREFIX_EXP";
   case INFIX_EXP:
     return "INFIX_EXP";
+  case FN_EXP:
+    return "FN_EXP";
+  case CALL_EXP:
+    return "CALL_EXP";
   default:
     assert("Unknown expression");
     return NULL;

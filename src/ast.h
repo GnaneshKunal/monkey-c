@@ -17,6 +17,7 @@ typedef enum {
   INFIX_EXP,
   IF_EXP,
   FN_EXP,
+  CALL_EXP,
 } EXPRESSION_TYPE;
 
 typedef struct _identifier_t {
@@ -99,6 +100,26 @@ fn_t *fn_new(token_t *token, param_t *params, block_statement_t *body);
 void fn_destroy(fn_t **function_literal);
 char *fn_to_string(fn_t *functional_literal);
 
+typedef struct _param_exp_t {
+  expression_t **expressions;
+  size_t len;
+} param_exp_t;
+
+param_exp_t *param_exp_new(void);
+void param_exp_append(param_exp_t *param_exps, expression_t *exp);
+void param_exp_destroy(param_exp_t **param_exps);
+char *param_exp_to_string(param_exp_t *param_exps);
+
+typedef struct _call_exp_t {
+  token_t *token;               /* The '(' token */
+  expression_t *call_exp;       /* Identifier or function literal */
+  param_exp_t *param_exps;
+} call_exp_t;
+
+call_exp_t *call_exp_new(token_t *token, param_exp_t *param_exps, expression_t *call_exp);
+void call_exp_destroy(call_exp_t **c_p);
+char *call_exp_to_string(call_exp_t *call_exp);
+
 /* forward declaration at the top */
 struct _expression_t {
   EXPRESSION_TYPE type;
@@ -111,6 +132,7 @@ struct _expression_t {
     infix_t *infix;
     if_exp_t *if_exp;
     fn_t *fn;
+    call_exp_t *call_exp;
   };
 };
 

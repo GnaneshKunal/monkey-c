@@ -1,6 +1,11 @@
 #include "token.h"
 
 TOKEN *keywords_initialize(void) {
+  /*
+   * TODO: Use a hash table with key detection. Current table will
+   *     return incorrect results if arbitrary data hashes to the same
+   *     hash as keywords.
+   */
   TOKEN *token_table = calloc(sizeof(TOKEN), KEYWORDS_SIZE);
   assert(token_table);
   token_table[gnu_hash((const uint8_t *)"fn") % KEYWORDS_SIZE] = FUNCTION_TOKEN;

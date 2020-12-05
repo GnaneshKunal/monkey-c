@@ -64,6 +64,7 @@ expression_t *parser_parse_grouped_expression(parser_t *parser, token_t *token,
 expression_t *parser_parse_if_expression(parser_t *parser, token_t *token,
                                          PRECEDENCE precedence);
 param_t *parser_parse_params(parser_t *parser);
+param_exp_t *parser_parse_param_exps(parser_t *parser);
 expression_t *parser_parse_fn_literal(parser_t *parser, token_t *token,
                                       PRECEDENCE precedence);
 
@@ -72,6 +73,8 @@ expression_t *parser_parse_prefix(parser_t *parser, token_t *token,
 
 expression_t *parser_parse_infix(parser_t *parser, token_t *token,
                                  PRECEDENCE precedence, expression_t *left);
+expression_t *parser_parse_call_expression(parser_t *parser, token_t *token,
+                                           PRECEDENCE precedence, expression_t *left);
 
 PRECEDENCE token_get_precedence(token_t *token);
 PRECEDENCE parser_cur_precedence(parser_t *parser);
