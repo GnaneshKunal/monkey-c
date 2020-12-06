@@ -1,6 +1,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "hash.h"
 #include "utils.h"
 
 #define KEYWORDS_SIZE 50
@@ -58,8 +59,8 @@ const char *token_to_str(TokenType t);
 token_t *token_new(TokenType type, char ch);
 void token_destroy(token_t **tok_p);
 
-TOKEN *keywords_initialize(void);
-void keywords_destroy(TOKEN **t_p);
-TOKEN keywords_get(TOKEN *keywords, char *str);
+ht_t *keywords_initialize(void);
+void keywords_destroy(ht_t **ht_p);
+TOKEN keywords_get(ht_t *keywords, char *str);
 
 #endif

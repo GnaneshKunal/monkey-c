@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "hash.h"
 
 struct _lexer_t {
   const char *input;
@@ -6,7 +7,7 @@ struct _lexer_t {
   uint32_t read_position; /* current reading position in input (after current
                              char) */
   char ch;                /* current char under examination */
-  TOKEN *keywords;
+  ht_t *keywords;
 };
 
 bool is_letter(char ch) {

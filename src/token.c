@@ -1,37 +1,29 @@
 #include "token.h"
 
-TOKEN *keywords_initialize(void) {
-  /*
-   * TODO: Use a hash table with key detection. Current table will
-   *     return incorrect results if arbitrary data hashes to the same
-   *     hash as keywords.
-   */
-  TOKEN *token_table = calloc(sizeof(TOKEN), KEYWORDS_SIZE);
-  assert(token_table);
-  token_table[gnu_hash((const uint8_t *)"fn") % KEYWORDS_SIZE] = FUNCTION_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"let") % KEYWORDS_SIZE] = LET_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"true") % KEYWORDS_SIZE] = TRUE_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"false") % KEYWORDS_SIZE] = FALSE_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"if") % KEYWORDS_SIZE] = IF_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"else") % KEYWORDS_SIZE] = ELSE_TOKEN;
-  token_table[gnu_hash((const uint8_t *)"return") % KEYWORDS_SIZE] =
-      RETURN_TOKEN;
-
-  return token_table;
+ht_t *keywords_initialize(void) {
+  ht_t *ht = ht_create(KEYWORDS_SIZE);
+  ht_add(ht, "fn", hd_create(HD_INT_DT, (uintptr_t *)FUNCTION_TOKEN));
+  ht_add(ht, "let", hd_create(HD_INT_DT, (uintptr_t *)LET_TOKEN));
+  ht_add(ht, "true", hd_create(HD_INT_DT, (uintptr_t *)TRUE_TOKEN));
+  ht_add(ht, "false", hd_create(HD_INT_DT, (uintptr_t *)FALSE_TOKEN));
+  ht_add(ht, "if", hd_create(HD_INT_DT, (uintptr_t *)IF_TOKEN));
+  ht_add(ht, "else", hd_create(HD_INT_DT, (uintptr_t *)ELSE_TOKEN));
+  ht_add(ht, "return", hd_create(HD_INT_DT, (uintptr_t *)RETURN_TOKEN));
+  return ht;
 }
 
-TOKEN keywords_get(TOKEN *keywords, char *str) {
+TOKEN keywords_get(ht_t *keywords, char *str) {
   assert(keywords);
-  return keywords[gnu_hash((const uint8_t *)str) % KEYWORDS_SIZE];
+  return ht_exists(keywords, str) ? ht_get(keywords, str)->num : 0;
 }
 
-void keywords_destroy(TOKEN **t_p) {
-  assert(t_p);
-  if (*t_p) {
-    TOKEN *t = *t_p;
-    assert(t);
-    free(t);
-    *t_p = NULL;
+void keywords_destroy(ht_t **ht_p) {
+  assert(ht_p);
+  if (*ht_p) {
+    ht_t *ht = *ht_p;
+    assert(ht);
+    ht_destroy(&ht);
+    *ht_p = NULL;
   }
 }
 
