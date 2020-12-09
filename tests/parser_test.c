@@ -85,6 +85,9 @@ void _test_literal(EXPRESSION_TYPE et, expression_t *expression,
   case BOOLEAN_EXP:
     _test_boolean_literal(expression, (bool)value);
     return;
+  case IDENT_EXP:
+    _test_str_literal(expression->identifier->value, (char *)value);
+    return;
   default:
     ck_abort_msg("Unknown literal type (%d)", et);
   }
@@ -187,6 +190,64 @@ let foobar = 838383;                                  \
   parser_destroy(&p); /* destroys lexer too */
 }
 END_TEST
+
+typedef struct {
+  char *input;
+  char *identifier;
+  test_data_t data;
+} test_let_statements_t;
+
+test_let_statements_t tests_let_statements_data[] = {
+  {
+    "let x = 5;",
+    "x",
+    (test_data_t){.dt=INT_DT, .int_data=5},
+  },
+  {
+    "let y = true;",
+    "y",
+    (test_data_t){.dt=BOOL_DT, .bool_data=true},
+  },
+  {
+    "let foobar = y;",
+    "foobar",
+    (test_data_t){.dt=IDENT_DT, .ident_data="y"},
+  }
+};
+
+START_TEST(test_let_statements_loop) {
+
+  test_let_statements_t *test_data = &tests_let_statements_data[_i];
+  lexer_t *lexer = lexer_new(test_data->input);
+  parser_t *parser = parser_new(lexer);
+
+  program_t *program = parser_parse_program(parser);
+  if (check_parser_errors(parser)) {
+    program_destroy(&program);
+    parser_destroy(&parser);
+    return;
+  }
+
+  if (program == NULL) {
+    parser_destroy(&parser);
+    ck_abort_msg("parse_program returned NULL");
+  }
+
+  if (program->len != 1) {
+    program_destroy(&program);
+    parser_destroy(&parser);
+    ck_abort_msg("Expected statements %d. Got=%d\n", 3, program->len);
+  }
+
+  statement_t *statement = program->statements[0];
+  _test_let_statement(statement, test_data->identifier);
+
+  expression_t *expression = statement->let_statement->value;
+  _test_literal(expression->type, expression, (uintptr_t *)test_data->data.ident_data);
+
+  program_destroy(&program);
+  parser_destroy(&parser);
+}
 
 START_TEST(test_return_statements) {
   const char input[] = "                              \
@@ -782,6 +843,10 @@ Suite *parser_suite(void) {
   tc_core = tcase_create("Core");
 
   tcase_add_test(tc_core, test_let_statements);
+
+  size_t let_tests_len = sizeof(tests_let_statements_data) / sizeof(*tests_let_statements_data);
+  tcase_add_loop_test(tc_core, test_let_statements_loop, 0, let_tests_len);
+
   tcase_add_test(tc_core, test_return_statements);
   tcase_add_test(tc_core, test_identifier_expressions);
   tcase_add_test(tc_core, test_integer_literal_expression);

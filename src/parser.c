@@ -186,14 +186,13 @@ let_statement_t *parser_parse_let_statement(parser_t *parser) {
     return NULL;
   }
 
-  /*
-   * TODO: We're skipping the expressions until we encounter a semicolon;
-   */
+  assert(parser->cur_token->type == ASSIGN_TOKEN);
+  token_destroy(&parser->cur_token);
+  parser_next_token(parser);
 
-  expression_t *value = NULL;
+  expression_t *value = parser_parse_expression(parser, LOWEST_PRECEDENCE);
 
-  while (!parser_cur_token_is(parser, SEMICOLON_TOKEN)) {
-    token_destroy(&parser->cur_token);
+  if (parser_peek_token_is(parser, SEMICOLON_TOKEN)) {
     parser_next_token(parser);
   }
 
@@ -206,14 +205,12 @@ return_statement_t *parser_parse_return_statement(parser_t *parser) {
   assert(parser);
 
   token_t *return_token = parser->cur_token;
-  expression_t *return_value = NULL;
 
   parser_next_token(parser);
 
-  while (!parser_cur_token_is(parser, SEMICOLON_TOKEN)) {
-    token_destroy(&parser->cur_token);
-    parser_next_token(parser);
-  }
+  expression_t *return_value = parser_parse_expression(parser, LOWEST_PRECEDENCE);
+
+  parser_next_token(parser);
 
   return return_statement_new(return_token, return_value);
 }

@@ -548,8 +548,7 @@ let_statement_t *let_statement_new(token_t *token, identifier_t *name,
                                    expression_t *value) {
   assert(token);
   assert(name);
-  /* TODO: ASSERT VALUE */
-  /* assert(value); */
+  assert(value);
   let_statement_t *let = malloc(sizeof(let_statement_t));
   let->token = token;
   let->name = name;
@@ -565,8 +564,7 @@ void let_statement_destroy(let_statement_t **l_p) {
 
     token_destroy(&l->token);
     identifier_destroy(&l->name);
-    /* TODO: destroy expression */
-    /* if (l->value != NULL) expression_destroy(&l->value); */
+    if (l->value != NULL) expression_destroy(&l->value);
     free(l);
     *l_p = NULL;
   }
@@ -584,8 +582,7 @@ char *let_statement_to_string(let_statement_t *let_statement) {
 return_statement_t *return_statement_new(token_t *token,
                                          expression_t *return_value) {
   assert(token);
-  /* TODO: ASSERT return_value */
-  /* assert(return_value); */
+  assert(return_value);
 
   return_statement_t *return_statement = malloc(sizeof(return_statement_t));
   assert(return_statement);
@@ -601,9 +598,7 @@ void return_statement_destroy(return_statement_t **r_p) {
     assert(return_statement);
 
     token_destroy(&return_statement->token);
-    /* TODO: destroy expression */
-    /* if (return_statement->value != NULL)
-     * expression_destroy(&return_statement->value); */
+    if (return_statement->return_value != NULL) expression_destroy(&return_statement->return_value);
     free(return_statement);
     *r_p = NULL;
   }
