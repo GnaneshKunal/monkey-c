@@ -9,6 +9,7 @@ AC_CONFIG_SRCDIR([src/main.c])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.11.2])
 
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -30,8 +31,11 @@ AC_CHECK_HEADERS([inttypes.h limits.h stdint.h stdlib.h string.h unistd.h])
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_INT32_T
 AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
+AC_C_INLINE
+AC_FUNC_STRERROR_R
 
 # Checks for library functions.
 AC_FUNC_MALLOC

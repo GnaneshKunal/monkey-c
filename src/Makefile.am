@@ -14,7 +14,9 @@ libmonkey_la_SOURCES = \
 	lexer.h \
 	lexer.c \
 	ast.h \
-	ast.c
+	ast.c	\
+	object.h	\
+	object.c
 
 bin_PROGRAMS = monkey
 monkey_SOURCES = main.c
