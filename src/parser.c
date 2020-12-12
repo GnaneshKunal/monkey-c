@@ -145,9 +145,11 @@ program_t *parser_parse_program(parser_t *parser) {
      */
     token_t *tok = parser->cur_token;
     if (tok != NULL) {
-      assert(tok->type == SEMICOLON_TOKEN);
-      token_destroy(&tok);
-      parser->cur_token = NULL;
+      if (parser->errors_len == 0) {
+        assert(tok->type == SEMICOLON_TOKEN);
+        token_destroy(&tok);
+        parser->cur_token = NULL;
+      }
     }
 
     parser_next_token(parser);
@@ -181,12 +183,21 @@ let_statement_t *parser_parse_let_statement(parser_t *parser) {
   token_t *let_token = parser->cur_token;
 
   if (!parser_expect_peek(parser, IDENT_TOKEN)) {
+    /*
+     * Destroy the let token.
+     */
+    token_destroy(&let_token);
     return NULL;
   }
 
   identifier_t *name = identifier_new(parser->cur_token);
 
   if (!parser_expect_peek(parser, ASSIGN_TOKEN)) {
+    /*
+     * Destroy let token and identifier.
+     */
+    token_destroy(&let_token);
+    identifier_destroy(&name);
     return NULL;
   }
 

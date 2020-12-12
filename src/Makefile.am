@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libmonkey.la
 libmonkey_la_SOURCES = \
 	utils.h \
+	dbg.h		\
 	hash.h	\
 	hash.c	\
 	token.h \
