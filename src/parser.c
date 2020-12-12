@@ -144,8 +144,12 @@ program_t *parser_parse_program(parser_t *parser) {
      * we must free the allocated memory of the skipping token.
      */
     token_t *tok = parser->cur_token;
-    token_destroy(&tok);
-    parser->cur_token = NULL;
+    if (tok != NULL) {
+      assert(tok->type == SEMICOLON_TOKEN);
+      token_destroy(&tok);
+      parser->cur_token = NULL;
+    }
+
     parser_next_token(parser);
   }
 
@@ -284,7 +288,7 @@ expression_t *parser_parse_expression(parser_t *parser, PRECEDENCE precedence) {
 
   if (prefix == NULL) {
     char *err_str = NULL;
-    asprintf(&err_str, "Error: %s(%d)\n", token->literal, token->type);
+    asprintf(&err_str, "Expected expression, got=%s(%s).", token_to_str(token->type), token->literal);
     parser_append_error(parser, err_str);
     free(err_str);
     /* printf("Error: %s(%d)\n", token->literal, token->type); */

@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "token.h"
+#include "parser.h"
 #include "utils.h"
 
 #define PROMPT ">> "
