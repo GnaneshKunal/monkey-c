@@ -438,8 +438,8 @@ param_exp_t *param_exp_new(void) {
 void param_exp_append(param_exp_t *param_exps, expression_t *expression) {
   assert(param_exps);
   assert(expression);
-  param_exps->expressions =
-    realloc(param_exps->expressions, (param_exps->len + 1) * sizeof(expression_t *));
+  param_exps->expressions = realloc(
+      param_exps->expressions, (param_exps->len + 1) * sizeof(expression_t *));
   assert(param_exps->expressions);
   param_exps->expressions[param_exps->len++] = expression;
 }
@@ -479,7 +479,6 @@ char *param_exp_to_string(param_exp_t *param_exps) {
   return str2;
 }
 
-
 fn_t *fn_new(token_t *token, param_t *params, block_statement_t *body) {
   assert(token);
   /* Zero params */
@@ -518,7 +517,8 @@ char *fn_to_string(fn_t *function_literal) {
   return str;
 }
 
-call_exp_t *call_exp_new(token_t *token, param_exp_t *param_exps, expression_t *exp) {
+call_exp_t *call_exp_new(token_t *token, param_exp_t *param_exps,
+                         expression_t *exp) {
   assert(token);
   assert(param_exps);
   assert(exp);
@@ -572,7 +572,8 @@ void let_statement_destroy(let_statement_t **l_p) {
 
     token_destroy(&l->token);
     identifier_destroy(&l->name);
-    if (l->value != NULL) expression_destroy(&l->value);
+    if (l->value != NULL)
+      expression_destroy(&l->value);
     free(l);
     *l_p = NULL;
   }
@@ -606,7 +607,8 @@ void return_statement_destroy(return_statement_t **r_p) {
     assert(return_statement);
 
     token_destroy(&return_statement->token);
-    if (return_statement->return_value != NULL) expression_destroy(&return_statement->return_value);
+    if (return_statement->return_value != NULL)
+      expression_destroy(&return_statement->return_value);
     free(return_statement);
     *r_p = NULL;
   }
@@ -756,10 +758,17 @@ char *program_to_string(program_t *program) {
 
   while (i < statements_len) {
     char *statement_str = statement_to_string(statements[i]);
+#ifdef HAVE_REALLOCARRAY
     program_str = reallocarray(program_str,
                                (program_str == NULL ? 0 : strlen(program_str)) +
                                    strlen(statement_str) + 1,
                                sizeof(char));
+#else
+    program_str =
+        realloc(program_str, ((program_str == NULL ? 0 : strlen(program_str)) +
+                              strlen(statement_str) + 1) *
+                                 sizeof(char));
+#endif
     char_count += snprintf(program_str + char_count, strlen(statement_str) + 1,
                            "%s", statement_str);
     free(statement_str);

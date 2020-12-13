@@ -1,7 +1,7 @@
 #include "../src/evaluator.h"
-#include "../src/parser.h"
 #include "../src/lexer.h"
 #include "../src/object.h"
+#include "../src/parser.h"
 #include "utils.h"
 #include <check.h>
 
@@ -42,16 +42,16 @@ test_eval_t *_test_eval(const char *input) {
 }
 
 void _test_obj_type(obj_t *obj, OBJ_TYPE ot) {
-  ck_assert_msg(obj->type == ot,
-                "Expected %s, got=%s\n", obj_type_to_str(ot), obj_type_to_str(obj->type));
+  ck_assert_msg(obj->type == ot, "Expected %s, got=%s\n", obj_type_to_str(ot),
+                obj_type_to_str(obj->type));
 }
 
 void _test_int_obj(obj_t *obj, int32_t expected) {
   _test_obj_type(obj, INT_OBJ);
 
   ck_assert_msg(obj->int_obj->value == expected,
-                "Expected=%" PRId32 ", got=%" PRId32 "\n",
-                expected, obj->int_obj->value);
+                "Expected=%" PRId32 ", got=%" PRId32 "\n", expected,
+                obj->int_obj->value);
 }
 
 typedef struct {
@@ -60,12 +60,11 @@ typedef struct {
 } test_int_obj_t;
 
 test_int_obj_t int_test_data[] = {
-  {"5", 5},
-  {"10", 10},
+    {"5", 5},
+    {"10", 10},
 };
 
-START_TEST(test_eval_integer_expression_loop)
-{
+START_TEST(test_eval_integer_expression_loop) {
   test_eval_t *eval_obj = _test_eval(int_test_data[_i].input);
 
   _test_int_obj(eval_obj->obj, int_test_data[_i].expected);

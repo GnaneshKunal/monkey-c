@@ -40,7 +40,7 @@ AC_FUNC_STRERROR_R
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([gethostname strdup])
+AC_CHECK_FUNCS([gethostname strdup reallocarray])
 
 dnl Enable debug
 AC_ARG_ENABLE([debug],
