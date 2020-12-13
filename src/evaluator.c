@@ -22,6 +22,8 @@ obj_t *eval_expression(expression_t *expression) {
   switch (expression->type) {
   case INT_EXP:
     return obj_new(INT_OBJ, int_obj_new(expression->integer->value));
+  case BOOLEAN_EXP:
+    return obj_new(BOOL_OBJ, bool_obj_new(expression->boolean->value));
   }
   return NULL;
 }

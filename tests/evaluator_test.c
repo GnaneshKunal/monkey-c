@@ -73,6 +73,35 @@ START_TEST(test_eval_integer_expression_loop) {
 }
 END_TEST
 
+typedef struct {
+  char *input;
+  bool expected;
+} test_booj_obj_t;
+
+void _test_bool_obj(obj_t *obj, bool expected) {
+  _test_obj_type(obj, BOOL_OBJ);
+
+  ck_assert_msg(obj->bool_obj->value == expected,
+                "Expected=%s, got=%s\n", get_bool_literal(expected),
+                get_bool_literal(obj->bool_obj->value));
+}
+
+
+test_booj_obj_t bool_test_data[] = {
+  {"true", true},
+  {"false", false},
+};
+
+START_TEST(test_eval_boolean_expression_loop)
+{
+  test_eval_t *eval_obj = _test_eval(bool_test_data[_i].input);
+
+  _test_bool_obj(eval_obj->obj, bool_test_data[_i].expected);
+
+  eval_destroy(&eval_obj);
+}
+END_TEST
+
 Suite *evaluator_suite(void) {
   Suite *s;
   TCase *tc_core;
@@ -80,7 +109,10 @@ Suite *evaluator_suite(void) {
   s = suite_create("Evaluator");
   tc_core = tcase_create("Core");
 
-  tcase_add_test(tc_core, test_eval_integer_expression_loop);
+  tcase_add_loop_test(tc_core, test_eval_integer_expression_loop, 0,
+                      sizeof(int_test_data) / sizeof(*int_test_data));
+  tcase_add_loop_test(tc_core, test_eval_boolean_expression_loop, 0,
+                      sizeof(bool_test_data) / sizeof(*bool_test_data));
 
   suite_add_tcase(s, tc_core);
 

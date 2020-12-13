@@ -6,6 +6,7 @@
 typedef enum {
   INT_OBJ,
   NULL_OBJ,
+  BOOL_OBJ,
 } OBJ_TYPE;
 
 const char *obj_type_to_str(OBJ_TYPE ot);
@@ -18,6 +19,14 @@ int_obj_t *int_obj_new(int32_t value);
 void int_obj_destroy(int_obj_t **obj_p);
 char *int_obj_to_string(int_obj_t *obj);
 
+typedef struct {
+  bool value;
+} bool_obj_t;
+
+bool_obj_t *bool_obj_new(bool value);
+void bool_obj_destroy(bool_obj_t **obj_p);
+char *bool_obj_to_string(bool_obj_t *obj);
+
 typedef struct {} null_obj_t;
 
 typedef struct _obj_t {
@@ -25,6 +34,7 @@ typedef struct _obj_t {
   union {
     int_obj_t *int_obj;
     null_obj_t *null_obj;
+    bool_obj_t *bool_obj;
   };
 } obj_t;
 

@@ -25,7 +25,7 @@ AM_PROG_CC_C_O
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([inttypes.h limits.h stdint.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([inttypes.h limits.h stdint.h stdlib.h string.h unistd.h execinfo.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

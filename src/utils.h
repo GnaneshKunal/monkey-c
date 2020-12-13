@@ -27,8 +27,10 @@
 #include <inttypes.h>           /* contains macros for printing long
                                    integers */
 
+#ifdef HAVE_EXECINFO_H
 /* stack trace */
 #include <execinfo.h>
+#endif
 #include <signal.h>
 #include <unistd.h>
 
@@ -38,6 +40,7 @@
 
 #define DUMP(varname) fprintf(stdout, "%s = \"%s\"\n", #varname, varname);
 
+#ifdef HAVE_EXECINFO_H
 static void handler(int sig) {
   void *array[10];
   size_t size;
@@ -48,6 +51,7 @@ static void handler(int sig) {
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
+#endif
 
 /* DT_GNU_HASH */
 static uint32_t gnu_hash(const uint8_t *name) {
