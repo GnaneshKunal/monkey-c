@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "config.h"
 
 statement_t *statement_new(void *statement, STATEMENT_TYPE st) {
   statement_t *s = malloc(sizeof(statement_t));
@@ -193,6 +194,7 @@ integer_t *integer_new(token_t *token) {
   integer->token = token;
 
   int32_t value;
+#ifdef HAVE_LIBBSD
   const char *errstr = NULL;
   value = strtonum(token->literal, 1, INT32_MAX, &errstr);
 
@@ -200,6 +202,12 @@ integer_t *integer_new(token_t *token) {
     printf("Invalid number: Unable to parse number %s\n", errstr);
     assert(false);
   }
+#else
+  if (sscanf(token->literal, "%" SCNd32, &value) != 1) {
+    printf("Invalid number: Unable to parse number %s\n", token->literal);
+    assert(false);
+  }
+#endif
 
   assert(((INT32_MIN <= value) && (value <= INT32_MAX)) &&
          "Invalid number: Number not in range.");

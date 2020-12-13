@@ -5,22 +5,26 @@
 
 typedef enum {
   INT_OBJ,
+  NULL_OBJ,
 } OBJ_TYPE;
 
 const char *obj_type_to_str(OBJ_TYPE ot);
 
 typedef struct {
   int32_t value;
-} int_obj;
+} int_obj_t;
 
-int_obj *int_obj_new(int32_t value);
-void int_obj_destroy(int_obj **obj_p);
-char *int_obj_to_string(int_obj *obj);
+int_obj_t *int_obj_new(int32_t value);
+void int_obj_destroy(int_obj_t **obj_p);
+char *int_obj_to_string(int_obj_t *obj);
+
+typedef struct {} null_obj_t;
 
 typedef struct _obj_t {
   OBJ_TYPE type;
   union {
-    int_obj *int_value;
+    int_obj_t *int_obj;
+    null_obj_t *null_obj;
   };
 } obj_t;
 

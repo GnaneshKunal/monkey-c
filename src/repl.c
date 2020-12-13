@@ -33,10 +33,13 @@ void start(FILE *in, FILE *out) {
     if (parser->errors_len != 0) {
       print_parser_errors(parser);
     } else {
-      char *program_str = program_to_string(program);
-      if (program_str != NULL)
-        printf("%s\n", program_str);
-      free(program_str);
+      obj_t *evaluated = eval(program);
+      if (evaluated != NULL) {
+        char *evaluated_str = obj_to_string(evaluated);
+        puts(evaluated_str);
+        free(evaluated_str);
+        obj_destroy(&evaluated);
+      }
     }
 
     program_destroy(&program);

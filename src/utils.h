@@ -3,10 +3,18 @@
 
 #ifdef __linux__
 #define _GNU_SOURCE
-#include <bsd/stdlib.h>
+
+#ifdef HAVE_LIBBSD
 #include <bsd/stdio.h>
-#include <stdint.h>
+#include <bsd/stdlib.h>
 #include <bsd/string.h>
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#include <stdint.h>
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +35,8 @@
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 64
 #endif
+
+#define DUMP(varname) fprintf(stdout, "%s = \"%s\"\n", #varname, varname);
 
 static void handler(int sig) {
   void *array[10];

@@ -1,4 +1,5 @@
 #include "../src/parser.h"
+#include "utils.h"
 #include <check.h>
 
 typedef enum {
@@ -125,25 +126,6 @@ void _test_infix(infix_t *infix, char *expected_operator, test_data_t left,
     ck_abort_msg("Unknown infix type (%d)", right.dt);
   }
 }
-
-bool check_parser_errors(parser_t *parser) {
-  size_t error_len = 0;
-  char **errors = parser_get_errors(parser, &error_len);
-  if (error_len > 0) {
-
-    printf("parser has %zu errors\n", error_len);
-
-    int i = 0;
-    while (i < error_len) {
-      puts(errors[i]);
-      free(errors[i]);
-      i++;
-    }
-    free(errors);
-    return true;
-  }
-  return false;
-};
 
 START_TEST(test_let_statements) {
   const char input[] = "                              \

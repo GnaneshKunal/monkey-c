@@ -16,7 +16,9 @@ libmonkey_la_SOURCES = \
 	ast.h \
 	ast.c	\
 	object.h	\
-	object.c
+	object.c	\
+	evaluator.h	\
+	evaluator.c
 
 bin_PROGRAMS = monkey
 monkey_SOURCES = main.c
