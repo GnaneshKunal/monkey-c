@@ -1,0 +1,117 @@
+2020-12-13  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add boolean obj. Don't try to include execinfo.h when not available.
+
+	Check for reallocarray Code format.
+
+	Add object implementation for integer and null. Add draft implementation of evaluator. Add evaluator tests.
+	Add alternative implementation of str to num conversion if libbsd is
+	not found.
+
+	Add missing configuration to autoconf.
+	Add object draft implementation.
+
+2020-12-12  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add debugging macro and echo parsing errors for let statements
+
+	Check for semicolon token before destroying.
+
+2020-12-09  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Fix TODOs. - Integrate expressions into let and return statements
+
+2020-12-06  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add hash table implementation.
+	Use the new hash table to store keyword tokens.
+
+	- Make debug optional. - Define HOST_NAME_MAX if not defined.
+
+2020-12-05  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Parse call expressions
+
+2020-12-04  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add function param parsing test case
+
+2020-12-03  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add function expressions
+
+2020-11-29  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Parse else condition
+
+2020-11-27  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add support for conditional expressions
+
+2020-11-25  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Remove unnecessary union field name
+
+	Add support for grouped expression
+
+	Add boolean exp tests
+
+2020-11-24  Gnanesh  <gnaneshkunal@outlook.com>
+
+	- Convert parser_tests to check tests - Add autotools gitignore - Remove redundant `get_token_literal` function in ast file
+
+2020-11-23  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Use check library for unit-tests
+
+	Migrate build system to autotools
+
+	Change directory structure
+
+2020-11-15  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Refactor Makefile and fix warnings
+
+2020-11-14  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add boolean expression. Suffix tokens with `_TOKEN`.
+
+	Add operator precedence test case
+
+	Parse infix expressions
+
+2020-11-12  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add prefix expression parser
+
+	Add minimal expression statement function. Add tags generation recipe to Makefile
+
+2020-11-10  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add expressions and statements
+
+2020-11-01  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Parse return statements
+
+2020-10-31  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Parse let statements
+
+2020-10-30  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add repl
+
+2020-10-29  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Add support to parse more keywords and operators
+
+2020-10-28  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Parse keywords, identifiers and numbers.
+
+	Format and move files to different directories
+
+2020-10-27  Gnanesh  <gnaneshkunal@outlook.com>
+
+	Initial commit
