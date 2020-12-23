@@ -51,4 +51,6 @@ obj_t *obj_new(OBJ_TYPE ot, void *value);
 void obj_destroy(obj_t **obj_p);
 char *obj_to_string(obj_t *obj);
 
+bool is_truthy(obj_t *obj);
+
 #endif

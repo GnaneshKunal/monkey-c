@@ -3,9 +3,13 @@
 #include "object.h"
 
 obj_t *eval(program_t *program) {
+  return eval_statements(program->len, program->statements);
+}
+
+obj_t *eval_statements(size_t len, statement_t **statements) {
   obj_t *obj = NULL;
-  for (int i = 0; i < program->len; i++) {
-    obj = eval_statement(program->statements[i]);
+  for (int i = 0; i < len; i++) {
+    obj = eval_statement(statements[i]);
   }
   return obj;
 }
@@ -14,6 +18,8 @@ obj_t *eval_statement(statement_t *statement) {
   switch (statement->type) {
   case EXPRESSION_STATEMENT:
     return eval_expression(statement->expression_statement->expression);
+  case BLOCK_STATEMENT:
+    return eval_statements(statement->block_statement->statements_len, statement->block_statement->statements);
   }
   return NULL;
 }
@@ -38,7 +44,6 @@ obj_t *eval_minus_operator(obj_t *right) {
   if (right->type != INT_OBJ) {
     return &NULL_IMPL_OBJ;
   }
-
   int32_t value = -right->int_obj->value;
   obj_destroy(&right);
   return obj_new(INT_OBJ, int_obj_new(value));
@@ -50,17 +55,14 @@ obj_t *eval_prefix_operation(char *operator, obj_t *right) {
   } else if (strcmp(operator, "-") == 0) {
     return eval_minus_operator(right);
   }
-
   return &NULL_IMPL_OBJ;
 }
 
 obj_t *eval_integer_infix_expression(char *operator, obj_t *left, obj_t *right) {
   int32_t left_value = left->int_obj->value;
   int32_t right_value = right->int_obj->value;
-
   obj_destroy(&left);
   obj_destroy(&right);
-
   if (strcmp(operator, "+") == 0) {
     return obj_new(INT_OBJ, int_obj_new(left_value + right_value));
   } else if (strcmp(operator, "-") == 0) {
@@ -91,8 +93,30 @@ obj_t *eval_infix_operation(char *operator, obj_t *left, obj_t *right) {
     return native_bool_to_boolean_obj(left != right);
   }
 
-
   return &NULL_IMPL_OBJ;
+}
+
+obj_t *eval_block_statement(block_statement_t *block_statement) {
+  return eval_statements(block_statement->statements_len, block_statement->statements);
+}
+
+obj_t *eval_if_expression(expression_t *expression) {
+  assert(expression);
+  assert(expression->type == IF_EXP);
+
+  if_exp_t *exp = expression->if_exp;
+  obj_t *condition = eval_expression(exp->condition);
+
+  if (is_truthy(condition)) {
+    obj_destroy(&condition);
+    return eval_block_statement(exp->consequence);
+  } else if (exp->alternative != NULL) {
+    obj_destroy(&condition);
+    return eval_block_statement(exp->alternative);
+  } else {
+    obj_destroy(&condition);
+    return &NULL_IMPL_OBJ;
+  }
 }
 
 obj_t *eval_expression(expression_t *expression) {
@@ -110,6 +134,8 @@ obj_t *eval_expression(expression_t *expression) {
     left = eval_expression(expression->infix->left);
     right = eval_expression(expression->infix->right);
     return eval_infix_operation(expression->infix->operator->literal, left, right);
+  case IF_EXP:
+    return eval_if_expression(expression);
   }
   return &NULL_IMPL_OBJ;
 }

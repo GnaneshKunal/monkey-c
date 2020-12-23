@@ -103,3 +103,16 @@ char *obj_to_string(obj_t *obj) {
   }
   return NULL;
 }
+
+
+bool is_truthy(obj_t *obj) {
+  switch (obj->type) {
+  case BOOL_OBJ:
+    return obj->bool_obj->value;
+  case NULL_OBJ:
+    return false;
+  default:
+    return true;
+  }
+}
+

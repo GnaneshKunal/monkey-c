@@ -150,6 +150,55 @@ START_TEST(test_bang_operator_loop)
 }
 END_TEST
 
+typedef struct {
+  OBJ_TYPE otype;
+  union {
+    int_obj_t int_data;
+    null_obj_t null_data;
+  };
+} t_obj_t;
+
+typedef struct {
+  char *input;
+  t_obj_t expected;
+} test_obj_t;
+
+void _test_null_obj(obj_t *actual) {
+  _test_obj_type(actual, NULL_OBJ);
+}
+
+void _test_if_expression(t_obj_t expected, obj_t *actual) {
+  switch (expected.otype) {
+  case NULL_OBJ:
+    _test_null_obj(actual);
+    break;
+  case INT_OBJ:
+    _test_int_obj(actual, expected.int_data.value);
+    break;
+  }
+}
+
+
+test_obj_t t_d_if_else_expression[] = {
+  {"if (true) { 10; }", {.otype=INT_OBJ, .int_data={.value=10}}},
+  {"if (false) { 10 }", {.otype=NULL_OBJ}},
+  {"if (1) { 10 }", {.otype=INT_OBJ, .int_data={.value=10}}},
+  {"if (1 < 2) { 10 }", {.otype=INT_OBJ, .int_data={.value=10}}},
+  {"if (1 > 2) { 10 }", {.otype=NULL_OBJ}},
+  {"if (1 > 2) { 10 } else { 20 }", {.otype=INT_OBJ, .int_data={.value=20}}},
+  {"if (1 < 2) { 10 } else { 20 }", {.otype=INT_OBJ, .int_data={.value=10}}},
+};
+
+START_TEST(test_if_else_expression_loop)
+{
+  test_eval_t *eval_obj = _test_eval(t_d_if_else_expression[_i].input);
+
+  _test_if_expression(t_d_if_else_expression[_i].expected, eval_obj->obj);
+
+  eval_destroy(&eval_obj);
+}
+END_TEST
+
 Suite *evaluator_suite(void) {
   Suite *s;
   TCase *tc_core;
@@ -164,6 +213,8 @@ Suite *evaluator_suite(void) {
 
   tcase_add_loop_test(tc_core, test_bang_operator_loop,
                       0, sizeof(t_d_bang_operator) / sizeof(*t_d_bang_operator));
+  tcase_add_loop_test(tc_core, test_if_else_expression_loop,
+                      0, sizeof(t_d_if_else_expression) / sizeof(*t_d_if_else_expression));
 
   suite_add_tcase(s, tc_core);
 
