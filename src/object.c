@@ -8,6 +8,8 @@ const char *obj_type_to_str(OBJ_TYPE ot) {
     return "BOOLEAN";
   case NULL_OBJ:
     return "NULL";
+  case RETURN_VALUE_OBJ:
+    return "RETURN";
   }
 }
 
@@ -47,6 +49,28 @@ char *bool_obj_to_string(bool_obj_t *obj) {
   return strdup(get_bool_literal(obj->value));
 }
 
+return_obj_t *return_obj_new(obj_t *value) {
+  assert(value);
+  return_obj_t *obj = malloc(sizeof(return_obj_t));
+  obj->value = value;
+  return obj;
+}
+
+void return_obj_destroy(return_obj_t **r_obj_p) {
+  assert(r_obj_p);
+  if (*r_obj_p) {
+    return_obj_t *r_obj = *r_obj_p;
+    obj_destroy(&r_obj->value);
+    free(r_obj);
+    *r_obj_p = NULL;
+  }
+}
+
+char *return_obj_to_string(return_obj_t *r_obj) {
+  assert(r_obj);
+  return obj_to_string(r_obj->value);
+}
+
 obj_t *obj_new(OBJ_TYPE ot, void *value) {
   obj_t *obj = NULL;
   switch (ot) {
@@ -61,6 +85,11 @@ obj_t *obj_new(OBJ_TYPE ot, void *value) {
   /* case BOOL_OBJ: */
   /*   obj->bool_obj = (bool_obj_t *)value; */
     /* break; */
+  case RETURN_VALUE_OBJ:
+    obj = malloc(sizeof(*obj));
+    obj->type = ot;
+    obj->return_obj = (return_obj_t *)value;
+    break;
   default:
     assert("Unknown object");
   }
@@ -74,6 +103,10 @@ void obj_destroy(obj_t **obj_p) {
     switch (obj->type) {
     case INT_OBJ:
       int_obj_destroy(&obj->int_obj);
+      free(obj);
+      break;
+    case RETURN_VALUE_OBJ:
+      return_obj_destroy(&obj->return_obj);
       free(obj);
       break;
     case NULL_OBJ:
@@ -100,6 +133,8 @@ char *obj_to_string(obj_t *obj) {
     return strdup("null");
   case BOOL_OBJ:
     return bool_obj_to_string(obj->bool_obj);
+  case RETURN_VALUE_OBJ:
+    return return_obj_to_string(obj->return_obj);
   }
   return NULL;
 }

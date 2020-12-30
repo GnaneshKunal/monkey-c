@@ -18,4 +18,5 @@ obj_t *eval_infix_operation(char *operator, obj_t *left, obj_t *right);
 obj_t *eval_integer_infix_expression(char *operator, obj_t *left, obj_t *right);
 
 obj_t *eval_block_statement(block_statement_t *block_statement);
+obj_t *eval_return_statement(return_statement_t *return_statement);
 #endif

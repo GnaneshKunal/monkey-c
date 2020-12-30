@@ -47,7 +47,7 @@ AC_ARG_ENABLE([debug],
     AS_HELP_STRING([--enable-debug], [Enable debug]))
 
 AS_IF([test "x$enable_debug" = "xyes"], [
-            CFLAGS='-g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -rdynamic'
+            CFLAGS='-g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -rdynamic -Wimplicit'
 ])
 
 dnl with asan

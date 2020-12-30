@@ -10,6 +10,9 @@ obj_t *eval_statements(size_t len, statement_t **statements) {
   obj_t *obj = NULL;
   for (int i = 0; i < len; i++) {
     obj = eval_statement(statements[i]);
+    if (obj->type == RETURN_VALUE_OBJ) {
+      return obj;
+    }
   }
   return obj;
 }
@@ -20,6 +23,8 @@ obj_t *eval_statement(statement_t *statement) {
     return eval_expression(statement->expression_statement->expression);
   case BLOCK_STATEMENT:
     return eval_statements(statement->block_statement->statements_len, statement->block_statement->statements);
+  case RETURN_STATEMENT:
+    return eval_return_statement(statement->return_statement);
   }
   return NULL;
 }
@@ -138,4 +143,9 @@ obj_t *eval_expression(expression_t *expression) {
     return eval_if_expression(expression);
   }
   return &NULL_IMPL_OBJ;
+}
+
+obj_t *eval_return_statement(return_statement_t *return_statement) {
+  obj_t *value = eval_expression(return_statement->return_value);
+  return obj_new(RETURN_VALUE_OBJ, return_obj_new(value));
 }

@@ -178,7 +178,6 @@ void _test_if_expression(t_obj_t expected, obj_t *actual) {
   }
 }
 
-
 test_obj_t t_d_if_else_expression[] = {
   {"if (true) { 10; }", {.otype=INT_OBJ, .int_data={.value=10}}},
   {"if (false) { 10 }", {.otype=NULL_OBJ}},
@@ -194,6 +193,40 @@ START_TEST(test_if_else_expression_loop)
   test_eval_t *eval_obj = _test_eval(t_d_if_else_expression[_i].input);
 
   _test_if_expression(t_d_if_else_expression[_i].expected, eval_obj->obj);
+
+  eval_destroy(&eval_obj);
+}
+END_TEST
+
+test_obj_t t_d_return_statement[] = {
+  {"return 10;", {.otype=INT_OBJ, .int_data={.value=10}}},
+  {"return 10; 9;", {.otype=INT_OBJ, .int_data={10}}},
+  {"return 2 * 5; 9;", {.otype=INT_OBJ, .int_data={10}}},
+  {"9; return 2 * 5; 9;", {.otype=INT_OBJ, .int_data={10}}},
+  {
+    "if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
+    {.otype=INT_OBJ, .int_data={10}},
+  }
+};
+
+void _test_return_expression(t_obj_t expected, obj_t *actual) {
+  switch (expected.otype) {
+  case NULL_OBJ:
+    _test_null_obj(actual);
+    break;
+  case INT_OBJ:
+    _test_int_obj(actual, expected.int_data.value);
+    break;
+  }
+}
+
+START_TEST(test_return_statement_loop)
+{
+  test_eval_t *eval_obj = _test_eval(t_d_return_statement[_i].input);
+
+  _test_obj_type(eval_obj->obj, RETURN_VALUE_OBJ);
+
+  _test_return_expression(t_d_return_statement[_i].expected, eval_obj->obj->return_obj->value);
 
   eval_destroy(&eval_obj);
 }
@@ -215,6 +248,9 @@ Suite *evaluator_suite(void) {
                       0, sizeof(t_d_bang_operator) / sizeof(*t_d_bang_operator));
   tcase_add_loop_test(tc_core, test_if_else_expression_loop,
                       0, sizeof(t_d_if_else_expression) / sizeof(*t_d_if_else_expression));
+
+  tcase_add_loop_test(tc_core, test_return_statement_loop,
+                      0, sizeof(t_d_return_statement) / sizeof(*t_d_return_statement));
 
   suite_add_tcase(s, tc_core);
 
