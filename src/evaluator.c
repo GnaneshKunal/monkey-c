@@ -11,6 +11,8 @@ obj_t *eval_statements(size_t len, statement_t **statements) {
   for (int i = 0; i < len; i++) {
     obj = eval_statement(statements[i]);
     if (obj->type == RETURN_VALUE_OBJ) {
+      return obj->return_obj->value;
+    } else if (obj->type == ERROR_OBJ) {
       return obj;
     }
   }
@@ -47,7 +49,12 @@ obj_t *eval_bang_operator(obj_t *right) {
 
 obj_t *eval_minus_operator(obj_t *right) {
   if (right->type != INT_OBJ) {
-    return &NULL_IMPL_OBJ;
+    char *str = NULL;
+    error_obj_t *error_obj = NULL;
+    asprintf(&str, "unknown operator: -%s", obj_type_to_str(right->type));
+    error_obj = error_obj_new(str);
+    free(str);
+    return obj_new(ERROR_OBJ, error_obj);
   }
   int32_t value = -right->int_obj->value;
   obj_destroy(&right);
@@ -85,24 +92,48 @@ obj_t *eval_integer_infix_expression(char *operator, obj_t *left, obj_t *right) 
   } else if (strcmp (operator, "!=") == 0) {
     return native_bool_to_boolean_obj(left_value != right_value);
   } else {
-    return &NULL_IMPL_OBJ;
+    char *str = NULL;
+    error_obj_t *error_obj = NULL;
+    asprintf(&str, "unknown operator: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
+    error_obj = error_obj_new(str);
+    free(str);
+    return obj_new(ERROR_OBJ, error_obj);
   }
 }
 
 obj_t *eval_infix_operation(char *operator, obj_t *left, obj_t *right) {
+  char *str = NULL;
+  error_obj_t *error_obj = NULL;
   if (left->type == INT_OBJ && right->type == INT_OBJ) {
     return eval_integer_infix_expression(operator, left, right);
   } else if (strcmp(operator, "==") == 0) {
     return native_bool_to_boolean_obj(left == right);
   } else if (strcmp(operator, "!=") == 0) {
     return native_bool_to_boolean_obj(left != right);
+  } else if (left->type != right->type) {
+    asprintf(&str, "type mismatch: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
+    error_obj = error_obj_new(str);
+    free(str);
+  } else {
+    asprintf(&str, "unknown operator: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
+    error_obj = error_obj_new(str);
+    free(str);
   }
-
-  return &NULL_IMPL_OBJ;
+  return obj_new(ERROR_OBJ, error_obj);
 }
 
 obj_t *eval_block_statement(block_statement_t *block_statement) {
-  return eval_statements(block_statement->statements_len, block_statement->statements);
+  size_t len = block_statement->statements_len;
+  statement_t **statements = block_statement->statements;
+  obj_t *obj = NULL;
+  for (int i = 0; i < len; i++) {
+    obj = eval_statement(statements[i]);
+    if (obj->type == RETURN_VALUE_OBJ) {
+      return obj;
+    } else if (obj->type == ERROR_OBJ) {
+      return obj;
+    }
+  }
 }
 
 obj_t *eval_if_expression(expression_t *expression) {

@@ -10,6 +10,8 @@ const char *obj_type_to_str(OBJ_TYPE ot) {
     return "NULL";
   case RETURN_VALUE_OBJ:
     return "RETURN";
+  case ERROR_OBJ:
+    return "ERROR";
   }
 }
 
@@ -71,6 +73,30 @@ char *return_obj_to_string(return_obj_t *r_obj) {
   return obj_to_string(r_obj->value);
 }
 
+error_obj_t *error_obj_new(const char *message) {
+  assert(message);
+  error_obj_t *error_obj = malloc(sizeof(error_obj_t));
+  error_obj->message = strdup(message);
+  return error_obj;
+}
+
+void error_obj_destroy(error_obj_t **e_obj_p) {
+  assert(e_obj_p);
+  if (*e_obj_p) {
+    error_obj_t *obj = *e_obj_p;
+    free(obj->message);
+    free(obj);
+    *e_obj_p = NULL;
+  }
+}
+
+char *error_obj_to_string(error_obj_t *e_obj) {
+  assert(e_obj);
+  char *str = NULL;
+  asprintf(&str, "ERROR: %s", e_obj->message);
+  return str;
+}
+
 obj_t *obj_new(OBJ_TYPE ot, void *value) {
   obj_t *obj = NULL;
   switch (ot) {
@@ -90,6 +116,10 @@ obj_t *obj_new(OBJ_TYPE ot, void *value) {
     obj->type = ot;
     obj->return_obj = (return_obj_t *)value;
     break;
+  case ERROR_OBJ:
+    obj = malloc(sizeof(*obj));
+    obj->type = ot;
+    obj->error_obj = (error_obj_t *)value;
   default:
     assert("Unknown object");
   }
@@ -107,6 +137,10 @@ void obj_destroy(obj_t **obj_p) {
       break;
     case RETURN_VALUE_OBJ:
       return_obj_destroy(&obj->return_obj);
+      free(obj);
+      break;
+    case ERROR_OBJ:
+      error_obj_destroy(&obj->error_obj);
       free(obj);
       break;
     case NULL_OBJ:
@@ -135,6 +169,8 @@ char *obj_to_string(obj_t *obj) {
     return bool_obj_to_string(obj->bool_obj);
   case RETURN_VALUE_OBJ:
     return return_obj_to_string(obj->return_obj);
+  case ERROR_OBJ:
+    return error_obj_to_string(obj->error_obj);
   }
   return NULL;
 }

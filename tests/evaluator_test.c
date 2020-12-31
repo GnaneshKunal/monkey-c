@@ -209,26 +209,46 @@ test_obj_t t_d_return_statement[] = {
   }
 };
 
-void _test_return_expression(t_obj_t expected, obj_t *actual) {
-  switch (expected.otype) {
-  case NULL_OBJ:
-    _test_null_obj(actual);
-    break;
-  case INT_OBJ:
-    _test_int_obj(actual, expected.int_data.value);
-    break;
-  }
-}
-
 START_TEST(test_return_statement_loop)
 {
   test_eval_t *eval_obj = _test_eval(t_d_return_statement[_i].input);
 
-  _test_obj_type(eval_obj->obj, RETURN_VALUE_OBJ);
+  _test_obj_type(eval_obj->obj, INT_OBJ);
 
-  _test_return_expression(t_d_return_statement[_i].expected, eval_obj->obj->return_obj->value);
+  _test_int_obj(eval_obj->obj, t_d_return_statement[_i].expected.int_data.value);
 
   eval_destroy(&eval_obj);
+}
+END_TEST
+
+typedef struct {
+  char *input;
+  char *expected_message;
+} test_error_obj_t;
+
+test_error_obj_t t_d_error_obj[] = {
+  {"5 + true;", "type mismatch: INTEGER + BOOLEAN"},
+  {"5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"},
+  {"-true", "unknown operator: -BOOLEAN"},
+  {"true + false", "unknown operator: BOOLEAN + BOOLEAN"},
+  {"5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"},
+  {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
+  {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }", "unknown operator: BOOLEAN + BOOLEAN"},
+};
+
+_test_error_obj(char *expected_message, obj_t *error_obj) {
+  _test_obj_type(error_obj, ERROR_OBJ);
+
+  ck_assert_msg(strcmp(expected_message, error_obj->error_obj->message) == 0,
+                "Expected=%s, got=%s", expected_message,
+                error_obj->error_obj->message);
+}
+
+START_TEST(test_error_obj_loop)
+{
+  test_eval_t *eval_obj = _test_eval(t_d_error_obj[_i].input);
+
+  _test_error_obj(t_d_error_obj[_i].expected_message, eval_obj->obj);
 }
 END_TEST
 
@@ -251,6 +271,9 @@ Suite *evaluator_suite(void) {
 
   tcase_add_loop_test(tc_core, test_return_statement_loop,
                       0, sizeof(t_d_return_statement) / sizeof(*t_d_return_statement));
+
+  tcase_add_loop_test(tc_core, test_error_obj_loop,
+                      0, sizeof(t_d_error_obj) / sizeof(*t_d_error_obj));
 
   suite_add_tcase(s, tc_core);
 
