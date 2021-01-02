@@ -11,10 +11,19 @@ obj_t *eval_statements(size_t len, statement_t **statements) {
   for (int i = 0; i < len; i++) {
     obj = eval_statement(statements[i]);
     if (obj->type == RETURN_VALUE_OBJ) {
-      return obj->return_obj->value;
+      obj_t *value = obj->return_obj->value;
+      /*
+       * Destroy return object but not its value
+       */
+      free(obj->return_obj);
+      free(obj);
+      obj = NULL;
+      return value;
     } else if (obj->type == ERROR_OBJ) {
       return obj;
     }
+    if (i != (len - 1))
+      obj_destroy(&obj);
   }
   return obj;
 }
@@ -50,18 +59,19 @@ obj_t *eval_bang_operator(obj_t *right) {
 obj_t *eval_minus_operator(obj_t *right) {
   if (right->type != INT_OBJ) {
     char *str = NULL;
-    error_obj_t *error_obj = NULL;
+    obj_t *error_obj = NULL;
     asprintf(&str, "unknown operator: -%s", obj_type_to_str(right->type));
-    error_obj = error_obj_new(str);
+    obj_destroy(&right);
+    error_obj = make_error(str);
     free(str);
-    return obj_new(ERROR_OBJ, error_obj);
+    return error_obj;
   }
   int32_t value = -right->int_obj->value;
   obj_destroy(&right);
   return obj_new(INT_OBJ, int_obj_new(value));
 }
 
-obj_t *eval_prefix_operation(char *operator, obj_t *right) {
+obj_t *eval_prefix_operation(const char *operator, obj_t *right) {
   if (strcmp(operator, "!") == 0) {
     return eval_bang_operator(right);
   } else if (strcmp(operator, "-") == 0) {
@@ -70,7 +80,7 @@ obj_t *eval_prefix_operation(char *operator, obj_t *right) {
   return &NULL_IMPL_OBJ;
 }
 
-obj_t *eval_integer_infix_expression(char *operator, obj_t *left, obj_t *right) {
+obj_t *eval_integer_infix_expression(const char *operator, obj_t *left, obj_t *right) {
   int32_t left_value = left->int_obj->value;
   int32_t right_value = right->int_obj->value;
   obj_destroy(&left);
@@ -93,17 +103,19 @@ obj_t *eval_integer_infix_expression(char *operator, obj_t *left, obj_t *right) 
     return native_bool_to_boolean_obj(left_value != right_value);
   } else {
     char *str = NULL;
-    error_obj_t *error_obj = NULL;
+    obj_t *error_obj = NULL;
     asprintf(&str, "unknown operator: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
-    error_obj = error_obj_new(str);
+    obj_destroy(&left);
+    obj_destroy(&right);
+    error_obj = make_error(str);
     free(str);
-    return obj_new(ERROR_OBJ, error_obj);
+    return error_obj;
   }
 }
 
-obj_t *eval_infix_operation(char *operator, obj_t *left, obj_t *right) {
+obj_t *eval_infix_operation(const char *operator, obj_t *left, obj_t *right) {
   char *str = NULL;
-  error_obj_t *error_obj = NULL;
+  obj_t *error_obj = NULL;
   if (left->type == INT_OBJ && right->type == INT_OBJ) {
     return eval_integer_infix_expression(operator, left, right);
   } else if (strcmp(operator, "==") == 0) {
@@ -112,14 +124,16 @@ obj_t *eval_infix_operation(char *operator, obj_t *left, obj_t *right) {
     return native_bool_to_boolean_obj(left != right);
   } else if (left->type != right->type) {
     asprintf(&str, "type mismatch: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
-    error_obj = error_obj_new(str);
-    free(str);
+    error_obj = make_error(str);
   } else {
     asprintf(&str, "unknown operator: %s %s %s", obj_type_to_str(left->type), operator, obj_type_to_str(right->type));
-    error_obj = error_obj_new(str);
-    free(str);
+    error_obj = make_error(str);
   }
-  return obj_new(ERROR_OBJ, error_obj);
+  obj_destroy(&left);
+  obj_destroy(&right);
+  assert(str);
+  free(str);
+  return error_obj;
 }
 
 obj_t *eval_block_statement(block_statement_t *block_statement) {
@@ -133,7 +147,11 @@ obj_t *eval_block_statement(block_statement_t *block_statement) {
     } else if (obj->type == ERROR_OBJ) {
       return obj;
     }
+    if (i != (len - 1)) {
+      obj_destroy(&obj);
+    }
   }
+  return obj;
 }
 
 obj_t *eval_if_expression(expression_t *expression) {
@@ -179,4 +197,9 @@ obj_t *eval_expression(expression_t *expression) {
 obj_t *eval_return_statement(return_statement_t *return_statement) {
   obj_t *value = eval_expression(return_statement->return_value);
   return obj_new(RETURN_VALUE_OBJ, return_obj_new(value));
+}
+
+obj_t *make_error(const char *str) {
+  assert(str);
+  return obj_new(ERROR_OBJ, error_obj_new(str));
 }

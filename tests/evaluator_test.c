@@ -186,6 +186,7 @@ test_obj_t t_d_if_else_expression[] = {
   {"if (1 > 2) { 10 }", {.otype=NULL_OBJ}},
   {"if (1 > 2) { 10 } else { 20 }", {.otype=INT_OBJ, .int_data={.value=20}}},
   {"if (1 < 2) { 10 } else { 20 }", {.otype=INT_OBJ, .int_data={.value=10}}},
+  {"if (1 < 2) { if (10 > 1) { return 10; } } else { 20 }", {.otype=INT_OBJ, .int_data={.value=10}}},
 };
 
 START_TEST(test_if_else_expression_loop)
@@ -249,6 +250,7 @@ START_TEST(test_error_obj_loop)
   test_eval_t *eval_obj = _test_eval(t_d_error_obj[_i].input);
 
   _test_error_obj(t_d_error_obj[_i].expected_message, eval_obj->obj);
+  eval_destroy(&eval_obj);
 }
 END_TEST
 

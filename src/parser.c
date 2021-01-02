@@ -281,6 +281,9 @@ block_statement_t *parser_parse_block_statement(parser_t *parser) {
         statements_len += 1;
       }
     }
+    if (parser->cur_token != NULL && parser_cur_token_is(parser, SEMICOLON_TOKEN)) {
+      token_destroy(&parser->cur_token);
+    }
     parser_next_token(parser);
   }
 
